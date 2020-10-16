@@ -5,6 +5,7 @@
 #include <d3dcompiler.h>
 #include <directxmath.h>
 #include <directxcolors.h>
+#include <random>
 #include "resource.h"
 
 using namespace DirectX;
@@ -42,6 +43,15 @@ private:
 	XMFLOAT4X4              _world;
 	XMFLOAT4X4              _view;
 	XMFLOAT4X4              _projection;
+
+	XMFLOAT4X4*				_cubes;
+	UINT					_cubeNum;
+
+	UINT					_pIndexCount, _pVertexCount;
+
+	//randomiser util
+	std::random_device		randDevice;	
+	std::normal_distribution<float> nd;
 
 private:
 	HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);

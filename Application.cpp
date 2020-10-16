@@ -39,6 +39,19 @@ Application::Application()
 	_pVertexBuffer = nullptr;
 	_pIndexBuffer = nullptr;
 	_pConstantBuffer = nullptr;
+
+    _cubeNum = 10;       // number of cubes
+    _cubes = nullptr;
+
+    _pVertexCount = 0;
+    _pIndexCount = 0;
+
+    _WindowHeight = 0;
+    _WindowWidth = 0;
+
+    //setup random engine for cubes
+    std::mt19937 rnd(randDevice());
+
 }
 
 Application::~Application()
@@ -69,14 +82,20 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 	XMStoreFloat4x4(&_world, XMMatrixIdentity());
 
     // Initialize the view matrix
-	XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, -3.0f, 0.0f);
-	XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, -10.0f, 0.0f);    //cam pos
+	XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);      //cam dir
+	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);      //cam up
 
 	XMStoreFloat4x4(&_view, XMMatrixLookAtLH(Eye, At, Up));
 
     // Initialize the projection matrix
 	XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(XM_PIDIV2, _WindowWidth / (FLOAT) _WindowHeight, 0.01f, 100.0f));
+
+    // Initialize the matrices of cubes
+    _cubes = new XMFLOAT4X4[_cubeNum];
+    for (int i = 0; i < _cubeNum; i++) {
+        XMStoreFloat4x4(&_cubes[i], XMMatrixIdentity());
+    }
 
 	return S_OK;
 }
@@ -127,7 +146,7 @@ HRESULT Application::InitShadersAndInputLayout()
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pIndexCount, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	UINT numElements = ARRAYSIZE(layout);
@@ -153,16 +172,30 @@ HRESULT Application::InitVertexBuffer()
     // Create vertex buffer
     SimpleVertex vertices[] =
     {
-        { XMFLOAT3( -1.0f, 1.0f, 0.0f ), XMFLOAT4( 0.0f, 0.0f, 1.0f, 1.0f ) },
-        { XMFLOAT3( 1.0f, 1.0f, 0.0f ), XMFLOAT4( 0.0f, 1.0f, 0.0f, 1.0f ) },
-        { XMFLOAT3( -1.0f, -1.0f, 0.0f ), XMFLOAT4( 0.0f, 1.0f, 1.0f, 1.0f ) },
-        { XMFLOAT3( 1.0f, -1.0f, 0.0f ), XMFLOAT4( 1.0f, 0.0f, 0.0f, 1.0f ) },
+        // back square
+        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },  //tl
+        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },   //tr
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) }, //bl
+        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },  //br
+
+        // front square
+        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },  //tl
+        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },   //tr
+        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) }, //bl
+        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },  //br
     };
+
+    _pVertexCount = sizeof(vertices);
+    /* DEBUG: checking size of variables
+    int verticesArraySize = sizeof(vertices);
+    int simpleVertexSize = sizeof(SimpleVertex);
+    */
 
     D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(SimpleVertex) * 4;
+    bd.ByteWidth = _pVertexCount;
+    //bd.ByteWidth = sizeof(SimpleVertex) * 4;  = 112
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
@@ -185,15 +218,24 @@ HRESULT Application::InitIndexBuffer()
     // Create index buffer
     WORD indices[] =
     {
-        0,1,2,
-        2,1,3,
+        0,1,2,  2,1,3,  // front
+        2,3,7,  7,6,2,  // bottom
+        1,5,7,  7,3,1,  // right
+        6,7,5,  5,4,6,  // back
+        4,0,2,  2,6,4,  // left
+        4,5,1,  1,0,4   // top
     };
+
+    _pIndexCount = sizeof(indices)/sizeof(WORD);
+    // DEBUG: checking size of variables
+    //int wordSize = sizeof(WORD);
 
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(WORD) * 6;     
+    bd.ByteWidth = sizeof(indices);
+    //bd.ByteWidth = sizeof(WORD) * 6;     
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
@@ -412,8 +454,8 @@ void Application::Update()
     }
     else
     {
-        static DWORD dwTimeStart = 0;
-        DWORD dwTimeCur = GetTickCount();
+        static ULONGLONG dwTimeStart = 0;
+        ULONGLONG dwTimeCur = GetTickCount64();
 
         if (dwTimeStart == 0)
             dwTimeStart = dwTimeCur;
@@ -424,7 +466,35 @@ void Application::Update()
     //
     // Animate the cube
     //
-	XMStoreFloat4x4(&_world, XMMatrixRotationZ(t));
+	XMStoreFloat4x4(&_world, 
+        XMMatrixRotationZ(t) * 
+        XMMatrixRotationY(t) *
+        XMMatrixTranslation(0.0f,0.0f,100.0f)
+    );
+
+    float tx = 0.0f;
+    float ty = 0.0f;
+    float rotx = 0.0f;
+    float roty = 0.0f;
+    
+    for (int i = 0; i < _cubeNum; i++) {
+        
+        if (i % 2 == 0) {
+            ty = float((i*1.5f)-(_cubeNum/2));
+            tx = -2;
+            rotx = -i * t;
+            roty = t;
+        } else {
+            tx = 2;
+            rotx = t;
+            roty = i * t;
+        }
+
+        XMStoreFloat4x4(&_cubes[i],
+            XMMatrixRotationRollPitchYaw(rotx, roty, 0) *
+            XMMatrixTranslation(tx, ty, 0.0f)
+        );
+    }
 }
 
 void Application::Draw()
@@ -455,7 +525,17 @@ void Application::Draw()
 	_pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
     _pImmediateContext->PSSetConstantBuffers(0, 1, &_pConstantBuffer);
 	_pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
-	_pImmediateContext->DrawIndexed(6, 0, 0);        
+	_pImmediateContext->DrawIndexed(_pIndexCount, 0, 0);
+
+    // Render cube array
+    for (int i = 0; i < _cubeNum; i++) {
+        world = XMLoadFloat4x4(&_cubes[i]);
+        cb.mWorld = XMMatrixTranspose(world);
+
+        _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+
+        _pImmediateContext->DrawIndexed(_pIndexCount, 0, 0);
+    }
 
     //
     // Present our back buffer to our front buffer
