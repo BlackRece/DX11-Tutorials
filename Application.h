@@ -49,6 +49,9 @@ private:
 
 	UINT					_pIndexCount, _pVertexCount;
 
+	ID3D11DepthStencilView* _depthStencilView;
+	ID3D11Texture2D*		_depthStencilBuffer;
+
 	//randomiser util
 	std::random_device		randDevice;	
 	std::normal_distribution<float> nd;
