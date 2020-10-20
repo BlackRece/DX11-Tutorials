@@ -55,6 +55,12 @@ private:
 	ID3D11RasterizerState*	_wireFrame;
 	bool					_enableWireFrame;
 
+	//pyramid
+	ID3D11Buffer*			_pPyramidVB;		//VertexBuffer;
+	ID3D11Buffer*			_pPyramidIB;		//IndexBuffer;
+	UINT					_pPyramidVC;		//VertexCount;
+	UINT					_pPyramidIC;		//IndexCount;
+
 	//randomiser util
 	std::random_device		randDevice;	
 	std::normal_distribution<float> nd;
