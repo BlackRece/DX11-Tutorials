@@ -16,6 +16,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PostQuitMessage(0);
             break;
 
+        case WM_KEYDOWN:
+
+            break;
+
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -48,6 +52,9 @@ Application::Application()
 
     _WindowHeight = 0;
     _WindowWidth = 0;
+
+    _wireFrame = nullptr;
+    _enableWireFrame = false;
 
     //setup random engine for cubes
     std::mt19937 rnd(randDevice());
@@ -444,6 +451,16 @@ HRESULT Application::InitDevice()
     if (FAILED(hr))
         return hr;
 
+    // Create wireframe rasterizer render state
+    D3D11_RASTERIZER_DESC wfdesc;
+    ZeroMemory(&wfdesc, sizeof(D3D11_RASTERIZER_DESC));
+    wfdesc.FillMode = D3D11_FILL_WIREFRAME;
+    wfdesc.CullMode = D3D11_CULL_NONE;
+    hr = _pd3dDevice->CreateRasterizerState(&wfdesc, &_wireFrame);
+
+    if (FAILED(hr))
+        return hr;
+
     return S_OK;
 }
 
@@ -465,6 +482,7 @@ void Application::Cleanup()
     if (_depthStencilView) _depthStencilView->Release();
     if (_depthStencilBuffer) _depthStencilBuffer->Release();
 
+    if (_wireFrame) _wireFrame->Release();
 }
 
 void Application::Update()
@@ -485,6 +503,12 @@ void Application::Update()
             dwTimeStart = dwTimeCur;
 
         t = (dwTimeCur - dwTimeStart) / 1000.0f;
+    }
+
+    //keyboard input
+    // should be handled by window not graphics
+    if (GetKeyState('Q') & 0x8000) {
+        _enableWireFrame = (_enableWireFrame) ? false : true;
     }
 
     //
@@ -533,12 +557,15 @@ void Application::Draw()
         _depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0
     );
 
-	XMMATRIX world = XMLoadFloat4x4(&_world);
-	XMMATRIX view = XMLoadFloat4x4(&_view);
-	XMMATRIX projection = XMLoadFloat4x4(&_projection);
-    //
+    
+
+	//
     // Update variables
     //
+    XMMATRIX world = XMLoadFloat4x4(&_world);
+    XMMATRIX view = XMLoadFloat4x4(&_view);
+    XMMATRIX projection = XMLoadFloat4x4(&_projection);
+
     ConstantBuffer cb;
 	cb.mWorld = XMMatrixTranspose(world);
 	cb.mView = XMMatrixTranspose(view);
@@ -549,13 +576,23 @@ void Application::Draw()
     //
     // Renders a triangle
     //
+    _pImmediateContext->RSSetState(_wireFrame);
 	_pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
 	_pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
     _pImmediateContext->PSSetConstantBuffers(0, 1, &_pConstantBuffer);
 	_pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
 	_pImmediateContext->DrawIndexed(_pIndexCount, 0, 0);
 
+
     // Render cube array
+
+    // Toggle wireframe
+    if (_enableWireFrame) {
+        _pImmediateContext->RSSetState(_wireFrame);
+    } else {
+        _pImmediateContext->RSSetState(nullptr);
+    }
+
     for (int i = 0; i < _cubeNum; i++) {
         world = XMLoadFloat4x4(&_cubes[i]);
         cb.mWorld = XMMatrixTranspose(world);
