@@ -62,6 +62,8 @@ Application::Application()
     _pPyramidVC = 0;    		//VertexCount;
     _pPyramidIC = 0;            //IndexCount;
 
+    _gTime = 0.0f;
+
     //setup random engine for cubes
     std::mt19937 rnd(randDevice());
 
@@ -575,6 +577,9 @@ void Application::Update()
         t = (dwTimeCur - dwTimeStart) / 1000.0f;
     }
 
+    //update constant buffer
+    _gTime = t;
+
     //keyboard input
     // should be handled by window not graphics
     if (GetKeyState('Q') & 0x8000) {
@@ -614,6 +619,7 @@ void Application::Update()
             XMMatrixTranslation(tx, ty, 0.0f)
         );
     }
+
 }
 
 void Application::Draw()
@@ -640,6 +646,7 @@ void Application::Draw()
 	cb.mWorld = XMMatrixTranspose(world);
 	cb.mView = XMMatrixTranspose(view);
 	cb.mProjection = XMMatrixTranspose(projection);
+    cb.gTime = _gTime;
 
 	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 

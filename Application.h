@@ -21,6 +21,7 @@ struct ConstantBuffer
 	XMMATRIX mWorld;
 	XMMATRIX mView;
 	XMMATRIX mProjection;
+	float gTime;
 };
 
 class Application
@@ -60,6 +61,8 @@ private:
 	ID3D11Buffer*			_pPyramidIB;		//IndexBuffer;
 	UINT					_pPyramidVC;		//VertexCount;
 	UINT					_pPyramidIC;		//IndexCount;
+
+	float					_gTime;
 
 	//randomiser util
 	std::random_device		randDevice;	
