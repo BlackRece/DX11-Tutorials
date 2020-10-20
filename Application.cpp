@@ -62,6 +62,12 @@ Application::Application()
     _pPyramidVC = 0;    		//VertexCount;
     _pPyramidIC = 0;            //IndexCount;
 
+    //cube
+    _pCubeVB = nullptr;		//VertexBuffer;
+    _pCubeIB = nullptr;		//IndexBuffer;
+    _pCubeVC = 0;    		//VertexCount;
+    _pCubeIC = 0;            //IndexCount;
+
     _gTime = 0.0f;
 
     //setup random engine for cubes
@@ -161,8 +167,8 @@ HRESULT Application::InitShadersAndInputLayout()
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        //{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pIndexCount, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pPyramidIC, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pIndexCount, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        //{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pPyramidIC, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	UINT numElements = ARRAYSIZE(layout);
@@ -186,7 +192,7 @@ HRESULT Application::InitVertexBuffer()
 	HRESULT hr;
 
     // Create vertex buffer
-    SimpleVertex vertices[] =
+    SimpleVertex cubeVertices[] =
     {
         // back square
         { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },  //tl
@@ -201,25 +207,20 @@ HRESULT Application::InitVertexBuffer()
         { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },  //br
     };
 
-    _pVertexCount = sizeof(vertices);
-    /* DEBUG: checking size of variables
-    int verticesArraySize = sizeof(vertices);
-    int simpleVertexSize = sizeof(SimpleVertex);
-    */
-
+    _pCubeVC = sizeof(cubeVertices);
+    
     D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = _pVertexCount;
-    //bd.ByteWidth = sizeof(SimpleVertex) * 4;  = 112
+    bd.ByteWidth = _pCubeVC;
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
     D3D11_SUBRESOURCE_DATA InitData;
 	ZeroMemory(&InitData, sizeof(InitData));
-    InitData.pSysMem = vertices;
+    InitData.pSysMem = cubeVertices;
 
-    hr = _pd3dDevice->CreateBuffer(&bd, &InitData, &_pVertexBuffer);
+    hr = _pd3dDevice->CreateBuffer(&bd, &InitData, &_pCubeVB);
 
     if (FAILED(hr))
         return hr;
@@ -262,7 +263,7 @@ HRESULT Application::InitIndexBuffer()
 	HRESULT hr;
 
     // Create index buffer
-    WORD indices[] =
+    WORD cubeIndices[] =
     {
         0,1,2,  2,1,3,  // front
         2,3,7,  7,6,2,  // bottom
@@ -272,23 +273,20 @@ HRESULT Application::InitIndexBuffer()
         4,5,1,  1,0,4   // top
     };
 
-    _pIndexCount = sizeof(indices)/sizeof(WORD);
-    // DEBUG: checking size of variables
-    //int wordSize = sizeof(WORD);
+    _pIndexCount = sizeof(cubeIndices)/sizeof(WORD);
 
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(indices);
-    //bd.ByteWidth = sizeof(WORD) * 6;     
+    bd.ByteWidth = sizeof(cubeIndices);
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
 	D3D11_SUBRESOURCE_DATA InitData;
 	ZeroMemory(&InitData, sizeof(InitData));
-    InitData.pSysMem = indices;
-    hr = _pd3dDevice->CreateBuffer(&bd, &InitData, &_pIndexBuffer);
+    InitData.pSysMem = cubeIndices;
+    hr = _pd3dDevice->CreateBuffer(&bd, &InitData, &_pCubeIB);
 
     if (FAILED(hr))
         return hr;
@@ -497,12 +495,14 @@ HRESULT Application::InitDevice()
     UINT stride = sizeof(SimpleVertex);
     UINT offset = 0;
     //_pImmediateContext->IASetVertexBuffers(0, 1, &_pVertexBuffer, &stride, &offset);
+    _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVB, &stride, &offset);
 
 	InitIndexBuffer();
 
     // Set index buffer
     //_pImmediateContext->IASetIndexBuffer(_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+    _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
     _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R16_UINT, 0);
 
     // Set primitive topology
@@ -554,7 +554,10 @@ void Application::Cleanup()
     if (_wireFrame) _wireFrame->Release();
 
     if (_pPyramidVB) _pPyramidVB->Release();
-    if (_pPyramidIB)_pPyramidIB->Release();
+    if (_pPyramidIB) _pPyramidIB->Release();
+
+    if (_pCubeVB) _pCubeVB->Release();
+    if (_pCubeIB) _pCubeIB->Release();
 }
 
 void Application::Update()
@@ -633,8 +636,6 @@ void Application::Draw()
         _depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0
     );
 
-    
-
 	//
     // Update variables
     //
@@ -649,6 +650,21 @@ void Application::Draw()
     cb.gTime = _gTime;
 
 	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+
+    // Set vertex buffer
+    UINT stride = sizeof(SimpleVertex);
+    UINT offset = 0;
+    //_pImmediateContext->IASetVertexBuffers(0, 1, &_pVertexBuffer, &stride, &offset);
+    _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
+    _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVB, &stride, &offset);
+
+    // Set index buffer
+    //_pImmediateContext->IASetIndexBuffer(_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+    _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
+    _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R16_UINT, 0);
+
+    // Set primitive topology
+    _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     //
     // Renders a triangle
@@ -674,11 +690,21 @@ void Application::Draw()
     for (int i = 0; i < _cubeNum; i++) {
         world = XMLoadFloat4x4(&_cubes[i]);
         cb.mWorld = XMMatrixTranspose(world);
+        if (i % 2 == 0) {
+            _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
+            _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
+            _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+            
+            _pImmediateContext->DrawIndexed(_pIndexCount, 0, 0);
+        } else {
+            _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVB, &stride, &offset);
+            _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R16_UINT, 0);
+            _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
-        _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
-
-        //_pImmediateContext->DrawIndexed(_pIndexCount, 0, 0);
-        _pImmediateContext->DrawIndexed(_pPyramidIC, 0, 0);
+            _pImmediateContext->DrawIndexed(_pPyramidIC, 0, 0);
+        }
     }
 
     //

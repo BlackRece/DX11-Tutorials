@@ -62,6 +62,12 @@ private:
 	UINT					_pPyramidVC;		//VertexCount;
 	UINT					_pPyramidIC;		//IndexCount;
 
+	//cube
+	ID3D11Buffer*			_pCubeVB;		//VertexBuffer;
+	ID3D11Buffer*			_pCubeIB;		//IndexBuffer;
+	UINT					_pCubeVC;		//VertexCount;
+	UINT					_pCubeIC;		//IndexCount;
+
 	float					_gTime;
 
 	//randomiser util
