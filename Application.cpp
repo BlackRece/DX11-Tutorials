@@ -68,6 +68,13 @@ Application::Application()
     _pCubeVC = 0;    		//VertexCount;
     _pCubeIC = 0;            //IndexCount;
 
+    //quad
+    _pQuadVB = nullptr;		//VertexBuffer;
+    _pQuadIB = nullptr;		//IndexBuffer;
+    _pQuadVC = 0;    		//VertexCount;
+    _pQuadIC = 0;           //IndexCount;
+    _pQuadDims = { 4,4 };   //width and height
+
     _gTime = 0.0f;
 
     //setup random engine for cubes
@@ -251,6 +258,33 @@ HRESULT Application::InitVertexBuffer()
     pInitData.pSysMem = pyramidVertices;
 
     hr = _pd3dDevice->CreateBuffer(&pbd, &pInitData, &_pPyramidVB);
+
+    if (FAILED(hr))
+        return hr;
+
+    // create quad buffer
+    SimpleVertex quadVertices[]={//[] = new SimpleVertex[_pQuadDims.x][_pQuadDims.y];
+        // quad
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+    };
+
+    _pQuadVC = sizeof(quadVertices);
+
+    D3D11_BUFFER_DESC qbd;
+    ZeroMemory(&qbd, sizeof(qbd));
+    qbd.Usage = D3D11_USAGE_DEFAULT;
+    qbd.ByteWidth = _pQuadVC;
+    qbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    qbd.CPUAccessFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA qInitData;
+    ZeroMemory(&qInitData, sizeof(qInitData));
+    qInitData.pSysMem = quadVertices;
+
+    hr = _pd3dDevice->CreateBuffer(&qbd, &qInitData, &_pQuadVB);
 
     if (FAILED(hr))
         return hr;
@@ -599,6 +633,10 @@ void Application::Update()
         XMMatrixTranslation(0.0f,0.0f,10.0f)
     );
 
+    /*
+    //
+    // Animate multpile cubes
+    //
     float tx = 0.0f;
     float ty = 0.0f;
     float rotx = 0.0f;
@@ -622,7 +660,46 @@ void Application::Update()
             XMMatrixTranslation(tx, ty, 0.0f)
         );
     }
+    */
 
+    //
+    // Animate solar system simulation
+    //
+    XMMATRIX sun, planet, moon;             // define some matrices
+
+    // sun
+    sun = XMMatrixIdentity();               // reset sun to identity matrix
+
+    sun = XMMatrixMultiply(                 // replace sun matrix...
+        XMMatrixRotationZ(t),                // ... adding a rotation
+        sun                                // ... with this matrix, after...
+    );
+    XMStoreFloat4x4(
+        &_cubes[0],
+        XMMatrixMultiply(                 // replace sun matrix...
+            XMMatrixRotationZ(t),                // ... adding a rotation
+            sun
+            )
+    );       // set a cube to the sun matrix
+
+    // planet 1
+    planet = XMMatrixIdentity();            // reset planet to identity matrix
+
+    planet = XMMatrixMultiply(              // replace planet matrix...
+        XMMatrixTranslation(5.0f,0.0f,0.0),  // ... adding translation by 4 units
+        sun                                // ... with this matrix, after...
+    );
+    XMStoreFloat4x4(&_cubes[1], planet);    // set a cube to the planet matrix
+
+    // moon 1
+    moon = XMMatrixIdentity();              // reset moon to identity matrix
+
+    moon = XMMatrixMultiply(                // replace moon matrix...
+        XMMatrixTranslation(4.0f, 0.0f, 0.0) * // ... adding translation by 4 units
+        XMMatrixRotationZ(t),                 // ... adding a rotation
+        planet                                   // ... with this matrix, after...
+    );
+    XMStoreFloat4x4(&_cubes[2], moon);    // set a cube to the moon matrix
 }
 
 void Application::Draw()
@@ -687,9 +764,23 @@ void Application::Draw()
         _pImmediateContext->RSSetState(nullptr);
     }
 
+    for (int i = 0; i < 3; i++) {
+        world = XMLoadFloat4x4(&_cubes[i]);
+        cb.mWorld = XMMatrixTranspose(world);
+        //if (i == 2) {
+            _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
+            _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
+            _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+
+            _pImmediateContext->DrawIndexed(_pIndexCount, 0, 0);
+        //}
+    }
+    /* multiple cubes
     for (int i = 0; i < _cubeNum; i++) {
         world = XMLoadFloat4x4(&_cubes[i]);
         cb.mWorld = XMMatrixTranspose(world);
+
         if (i % 2 == 0) {
             _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
             _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
@@ -706,6 +797,7 @@ void Application::Draw()
             _pImmediateContext->DrawIndexed(_pPyramidIC, 0, 0);
         }
     }
+    */
 
     //
     // Present our back buffer to our front buffer

@@ -68,6 +68,13 @@ private:
 	UINT					_pCubeVC;		//VertexCount;
 	UINT					_pCubeIC;		//IndexCount;
 
+	//plain
+	ID3D11Buffer*			_pQuadVB;		//VertexBuffer;
+	ID3D11Buffer*			_pQuadIB;		//IndexBuffer;
+	UINT					_pQuadVC;		//VertexCount;
+	UINT					_pQuadIC;		//IndexCount;
+	XMFLOAT2				_pQuadDims;		//dimensions of quad
+
 	float					_gTime;
 
 	//randomiser util
