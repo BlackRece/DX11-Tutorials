@@ -7,6 +7,7 @@
 #include <directxcolors.h>
 #include <random>
 #include "resource.h"
+#include "PlaneGenerator.h"
 
 using namespace DirectX;
 
@@ -69,6 +70,8 @@ private:
 	UINT					_pCubeIC;		//IndexCount;
 
 	//plain
+	PlaneGenerator*			_pQuadGen;
+	XMFLOAT4X4				_pPlane;
 	ID3D11Buffer*			_pQuadVB;		//VertexBuffer;
 	ID3D11Buffer*			_pQuadIB;		//IndexBuffer;
 	UINT					_pQuadVC;		//VertexCount;
@@ -89,6 +92,7 @@ private:
 	HRESULT InitShadersAndInputLayout();
 	HRESULT InitVertexBuffer();
 	HRESULT InitIndexBuffer();
+	HRESULT InitPlane();
 
 	UINT _WindowHeight;
 	UINT _WindowWidth;

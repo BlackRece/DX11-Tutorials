@@ -30,6 +30,7 @@ public:
 	Vector3D cross_product(const Vector3D& vec); //cross_product
 	Vector3D normalization();   //normalized vector
 
+public: // <- shouldn't need this here since there's one on line 10!
 	//Scalar operations
 	float square(); //gives square of the vector
 	float distance(const Vector3D& vec); //distance between two vectors

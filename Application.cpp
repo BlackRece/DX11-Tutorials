@@ -69,11 +69,16 @@ Application::Application()
     _pCubeIC = 0;            //IndexCount;
 
     //quad
+    _pQuadGen = new PlaneGenerator();
+    _pQuadDims = { 4,4 };   //width and height
+    _pQuadGen->_row = 4;
+    _pQuadGen->_col = 4;
+    _pQuadGen->position = Vector3D(0.0f, -6.0f, 0.0f);
+
     _pQuadVB = nullptr;		//VertexBuffer;
     _pQuadIB = nullptr;		//IndexBuffer;
     _pQuadVC = 0;    		//VertexCount;
     _pQuadIC = 0;           //IndexCount;
-    _pQuadDims = { 4,4 };   //width and height
 
     _gTime = 0.0f;
 
@@ -262,32 +267,7 @@ HRESULT Application::InitVertexBuffer()
     if (FAILED(hr))
         return hr;
 
-    // create quad buffer
-    SimpleVertex quadVertices[]={//[] = new SimpleVertex[_pQuadDims.x][_pQuadDims.y];
-        // quad
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
-    };
-
-    _pQuadVC = sizeof(quadVertices);
-
-    D3D11_BUFFER_DESC qbd;
-    ZeroMemory(&qbd, sizeof(qbd));
-    qbd.Usage = D3D11_USAGE_DEFAULT;
-    qbd.ByteWidth = _pQuadVC;
-    qbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    qbd.CPUAccessFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA qInitData;
-    ZeroMemory(&qInitData, sizeof(qInitData));
-    qInitData.pSysMem = quadVertices;
-
-    hr = _pd3dDevice->CreateBuffer(&qbd, &qInitData, &_pQuadVB);
-
-    if (FAILED(hr))
-        return hr;
+    
 
 	return S_OK;
 }
@@ -354,6 +334,56 @@ HRESULT Application::InitIndexBuffer()
         return hr;
 
 	return S_OK;
+}
+
+HRESULT Application::InitPlane() {
+    HRESULT hr = S_OK;
+
+    // generate plane 
+    _pQuadGen->CreateGrid(
+        10.0f, 10.0f, 
+        _pQuadDims.x, _pQuadDims.y, 
+        _pQuadGen->_meshData
+    );
+
+    // create plane vertex buffer
+    D3D11_BUFFER_DESC vbd;
+    ZeroMemory(&vbd, sizeof(vbd));
+    vbd.Usage = D3D11_USAGE_DEFAULT;
+    vbd.ByteWidth = _pQuadVC;
+    vbd.ByteWidth = sizeof(PlaneGenerator::Vertex) * _pQuadGen->_vertexCount;
+    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vbd.CPUAccessFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA vInitData;
+    ZeroMemory(&vInitData, sizeof(vInitData));
+    vInitData.pSysMem = &_pQuadGen->_meshData.Vertices[0];
+
+    hr = _pd3dDevice->CreateBuffer(&vbd, &vInitData, &_pQuadVB);
+
+    if (FAILED(hr))
+        return hr;
+
+    // create plane index buffer
+    _pQuadGen->CreateIndices(_pQuadGen->_meshData);
+
+    D3D11_BUFFER_DESC ibd;
+    ZeroMemory(&ibd, sizeof(ibd));
+
+    ibd.Usage = D3D11_USAGE_DEFAULT;
+    ibd.ByteWidth = sizeof(unsigned int) * _pQuadGen->_indexCount;
+    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    ibd.CPUAccessFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA iInitData;
+    ZeroMemory(&iInitData, sizeof(iInitData));
+    iInitData.pSysMem = &_pQuadGen->_meshData.Indices[0];
+    hr = _pd3dDevice->CreateBuffer(&ibd, &iInitData, &_pQuadIB);
+
+    if (FAILED(hr))
+        return hr;
+
+    return hr;
 }
 
 HRESULT Application::InitWindow(HINSTANCE hInstance, int nCmdShow)
@@ -539,8 +569,16 @@ HRESULT Application::InitDevice()
     _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
     _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R16_UINT, 0);
 
+    // Set vertex and index buffers for array of quads
+    stride = sizeof(PlaneGenerator::Vertex);
+    offset = 0;
+    InitPlane();
+    _pImmediateContext->IASetVertexBuffers(0, 1, &_pQuadVB, &stride, &offset);
+    _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R16_UINT, 0);
+
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 
 	// Create the constant buffer
 	D3D11_BUFFER_DESC bd;
@@ -592,6 +630,10 @@ void Application::Cleanup()
 
     if (_pCubeVB) _pCubeVB->Release();
     if (_pCubeIB) _pCubeIB->Release();
+    if (_pQuadGen) {
+        _pQuadGen = nullptr; 
+        delete _pQuadGen;
+    }
 }
 
 void Application::Update()
@@ -700,6 +742,20 @@ void Application::Update()
         planet                                   // ... with this matrix, after...
     );
     XMStoreFloat4x4(&_cubes[2], moon);    // set a cube to the moon matrix
+
+    //
+    // Position plane
+    //
+    XMStoreFloat4x4(&_pPlane, 
+        XMMatrixMultiply(
+            XMMatrixIdentity(),
+            XMMatrixTranslation(
+                _pQuadGen->position.show_X(),
+                _pQuadGen->position.show_Y(),
+                _pQuadGen->position.show_Z()
+            )
+        )
+    );
 }
 
 void Application::Draw()
@@ -751,7 +807,6 @@ void Application::Draw()
 	_pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
     _pImmediateContext->PSSetConstantBuffers(0, 1, &_pConstantBuffer);
 	_pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
-	//_pImmediateContext->DrawIndexed(_pIndexCount, 0, 0);
     _pImmediateContext->DrawIndexed(_pPyramidIC, 0, 0);
 
 
@@ -764,18 +819,18 @@ void Application::Draw()
         _pImmediateContext->RSSetState(nullptr);
     }
 
+    /* solar system simulation */
     for (int i = 0; i < 3; i++) {
         world = XMLoadFloat4x4(&_cubes[i]);
         cb.mWorld = XMMatrixTranspose(world);
-        //if (i == 2) {
-            _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
-            _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
-            _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-            _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+        _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
+        _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
+        _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
-            _pImmediateContext->DrawIndexed(_pIndexCount, 0, 0);
-        //}
+        _pImmediateContext->DrawIndexed(_pIndexCount, 0, 0);
     }
+
     /* multiple cubes
     for (int i = 0; i < _cubeNum; i++) {
         world = XMLoadFloat4x4(&_cubes[i]);
@@ -798,6 +853,20 @@ void Application::Draw()
         }
     }
     */
+
+    // quad floor wireframe
+    _pImmediateContext->RSSetState(_wireFrame);
+    
+    cb.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&_pPlane));
+    cb.gTime = 0;
+
+    stride = sizeof(PlaneGenerator::Vertex);
+    _pImmediateContext->IASetVertexBuffers(0, 1, &_pQuadVB, &stride, &offset);
+    _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R16_UINT, 0);
+    _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+
+    _pImmediateContext->DrawIndexed(_pQuadGen->_indexCount, 0, 0);
 
     //
     // Present our back buffer to our front buffer
