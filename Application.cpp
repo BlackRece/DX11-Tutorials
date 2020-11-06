@@ -57,30 +57,34 @@ Application::Application()
     _enableWireFrame = false;
 
     //pyramid
+    _pPyramidMesh = MeshData();
     _pPyramidVB = nullptr;		//VertexBuffer;
     _pPyramidIB = nullptr;		//IndexBuffer;
     _pPyramidVC = 0;    		//VertexCount;
     _pPyramidIC = 0;            //IndexCount;
 
     //cube
-    _pCubeVB = nullptr;		//VertexBuffer;
-    _pCubeIB = nullptr;		//IndexBuffer;
-    _pCubeVC = 0;    		//VertexCount;
-    _pCubeIC = 0;            //IndexCount;
+    _pCubeMesh = MeshData();
+    _pCubeVB = nullptr;		    //VertexBuffer;
+    _pCubeIB = nullptr;		    //IndexBuffer;
+    _pCubeVC = 0;    		    //VertexCount;
+    _pCubeIC = 0;               //IndexCount;
 
     //quad
     _pQuadGen = new PlaneGenerator();
-    _pQuadDims = { 4,4 };   //width and height
-    _pQuadGen->_row = 4;
-    _pQuadGen->_col = 4;
-    _pQuadGen->position = Vector3D(0.0f, -6.0f, 0.0f);
+    _pQuadDims = { 4,4 };       //vertices width and height
+    _pQuadArea = { 10,10 };     //size of area for plane
+    _pQuadGen->position = Vector3D(0.0f, -10.0f, 7.0f);
 
-    _pQuadVB = nullptr;		//VertexBuffer;
-    _pQuadIB = nullptr;		//IndexBuffer;
-    _pQuadVC = 0;    		//VertexCount;
-    _pQuadIC = 0;           //IndexCount;
+    _pQuadVB = nullptr;		    //VertexBuffer;
+    _pQuadIB = nullptr;		    //IndexBuffer;
+    _pQuadVC = 0;    		    //VertexCount;
+    _pQuadIC = 0;               //IndexCount;
 
     _gTime = 0.0f;
+
+    //lighting
+    _pLight = Lighting();
 
     //setup random engine for cubes
     std::mt19937 rnd(randDevice());
@@ -115,9 +119,16 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 	XMStoreFloat4x4(&_world, XMMatrixIdentity());
 
     // Initialize the view matrix
+    // Forward
 	XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, -10.0f, 0.0f);    //cam pos
 	XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);      //cam dir
 	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);      //cam up
+    /*
+    // Backward
+    XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, 10.0f, 0.0f);    //cam pos
+    XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);      //cam dir
+    XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);      //cam up
+    */
 
 	XMStoreFloat4x4(&_view, XMMatrixLookAtLH(Eye, At, Up));
 
@@ -126,7 +137,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 
     // Initialize the matrices of cubes
     _cubes = new XMFLOAT4X4[_cubeNum];
-    for (int i = 0; i < _cubeNum; i++) {
+    for (UINT i = 0; i < _cubeNum; i++) {
         XMStoreFloat4x4(&_cubes[i], XMMatrixIdentity());
     }
 
@@ -144,7 +155,7 @@ HRESULT Application::InitShadersAndInputLayout()
     if (FAILED(hr))
     {
         MessageBox(nullptr,
-                   L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+                   L"VSBlob: The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
         return hr;
     }
 
@@ -164,7 +175,7 @@ HRESULT Application::InitShadersAndInputLayout()
     if (FAILED(hr))
     {
         MessageBox(nullptr,
-                   L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+                   L"PSBlob: The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
         return hr;
     }
 
@@ -180,6 +191,7 @@ HRESULT Application::InitShadersAndInputLayout()
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pIndexCount, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        //{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pIndexCount, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         //{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pPyramidIC, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
@@ -219,7 +231,12 @@ HRESULT Application::InitVertexBuffer()
         { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },  //br
     };
 
-    _pCubeVC = sizeof(cubeVertices);
+    _pCubeVC = sizeof(cubeVertices);        //224 bytes
+
+    for (int i = 0; i < (_pCubeVC / sizeof(SimpleVertex)); i++) {
+        _pCubeMesh.Vertices.push_back(Vertex(cubeVertices[i].Pos));
+    }
+    
     
     D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
@@ -236,7 +253,7 @@ HRESULT Application::InitVertexBuffer()
 
     if (FAILED(hr))
         return hr;
-
+    
     // create pyramid buffer
     SimpleVertex pyramidVertices[] = {
         // bottom square
@@ -251,6 +268,11 @@ HRESULT Application::InitVertexBuffer()
 
     _pPyramidVC = sizeof(pyramidVertices);
 
+    for (int i = 0; i < (_pPyramidVC / sizeof(SimpleVertex)); i++) {
+        _pPyramidMesh.Vertices.push_back(Vertex(pyramidVertices[i].Pos));
+    }
+
+    
     D3D11_BUFFER_DESC pbd;
     ZeroMemory(&pbd, sizeof(pbd));
     pbd.Usage = D3D11_USAGE_DEFAULT;
@@ -266,9 +288,7 @@ HRESULT Application::InitVertexBuffer()
 
     if (FAILED(hr))
         return hr;
-
     
-
 	return S_OK;
 }
 
@@ -289,6 +309,12 @@ HRESULT Application::InitIndexBuffer()
 
     _pIndexCount = sizeof(cubeIndices)/sizeof(WORD);
 
+    for (int i = 0; i < _pIndexCount; i++) {
+        _pCubeMesh.Indices.push_back(cubeIndices[i]);
+    }
+
+    int sizeofindices = _pCubeMesh.Indices.size();
+    
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 
@@ -316,6 +342,10 @@ HRESULT Application::InitIndexBuffer()
     };
 
     _pPyramidIC = sizeof(pyramidIndices) / sizeof(WORD);
+
+    for (int i = 0; i < _pPyramidIC; i++) {
+        _pPyramidMesh.Indices.push_back(pyramidIndices[i]);
+    }
     
     D3D11_BUFFER_DESC pbd;
     ZeroMemory(&pbd, sizeof(pbd));
@@ -341,17 +371,26 @@ HRESULT Application::InitPlane() {
 
     // generate plane 
     _pQuadGen->CreateGrid(
-        10.0f, 10.0f, 
-        _pQuadDims.x, _pQuadDims.y, 
-        _pQuadGen->_meshData
+        (UINT)_pQuadArea.x, (UINT)_pQuadArea.y,     //size of area for plane
+        (UINT)_pQuadDims.x, (UINT)_pQuadDims.y,     //number of vertices per width and height
+        _pQuadGen->_meshData                        //the generated vertices and indices of plane
     );
+
+    /*
+    // DEBUG: variable size check
+    int sizeVertex = sizeof(Vertex);            //48
+    int sizeMeshData = sizeof(MeshData);        //32
+    int sizeVertices = sizeof(_pQuadGen->_meshData.Vertices);   //16
+    int sizeIndices = sizeof(_pQuadGen->_meshData.Indices);     //16
+    int sizeUnsignedInt= sizeof(unsigned int);                  //4
+    */
 
     // create plane vertex buffer
     D3D11_BUFFER_DESC vbd;
     ZeroMemory(&vbd, sizeof(vbd));
     vbd.Usage = D3D11_USAGE_DEFAULT;
-    vbd.ByteWidth = _pQuadVC;
-    vbd.ByteWidth = sizeof(PlaneGenerator::Vertex) * _pQuadGen->_vertexCount;
+    //vbd.ByteWidth = sizeof(PlaneGenerator::Vertex) * _pQuadGen->_vertexCount;   //48*4 = 192
+    vbd.ByteWidth = (sizeof(Vertex) * _pQuadGen->_vertexCount);   //384
     vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     vbd.CPUAccessFlags = 0;
 
@@ -371,7 +410,7 @@ HRESULT Application::InitPlane() {
     ZeroMemory(&ibd, sizeof(ibd));
 
     ibd.Usage = D3D11_USAGE_DEFAULT;
-    ibd.ByteWidth = sizeof(unsigned int) * _pQuadGen->_indexCount;
+    ibd.ByteWidth = sizeof(unsigned int) * _pQuadGen->_indexCount;      //32
     ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     ibd.CPUAccessFlags = 0;
 
@@ -384,6 +423,72 @@ HRESULT Application::InitPlane() {
         return hr;
 
     return hr;
+}
+
+HRESULT Application::InitCubeNormals() {
+    HRESULT hr = S_OK;
+
+    PlaneGenerator::CalcNormals(_pCubeMesh.Vertices, _pCubeMesh.Indices);
+
+    D3D11_BUFFER_DESC bd;
+    ZeroMemory(&bd, sizeof(bd));
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = _pCubeVC;
+    bd.ByteWidth = sizeof(unsigned int) * _pCubeMesh.Vertices.size();
+
+    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bd.CPUAccessFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA InitData;
+    ZeroMemory(&InitData, sizeof(InitData));
+    InitData.pSysMem = &_pCubeMesh.Vertices[0];
+
+    hr = _pd3dDevice->CreateBuffer(&bd, &InitData, &_pCubeVB);
+
+    if (FAILED(hr))
+        return hr;
+
+    D3D11_BUFFER_DESC ibd;
+    ZeroMemory(&ibd, sizeof(ibd));
+
+    ibd.Usage = D3D11_USAGE_DEFAULT;
+    ibd.ByteWidth = _pCubeMesh.Indices.size()*sizeof(unsigned int);
+    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    ibd.CPUAccessFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA iInitData;
+    ZeroMemory(&iInitData, sizeof(iInitData));
+    iInitData.pSysMem = &_pCubeMesh.Indices[0];
+    hr = _pd3dDevice->CreateBuffer(&ibd, &iInitData, &_pCubeIB);
+
+    if (FAILED(hr))
+        return hr;
+
+    return hr;
+}
+
+HRESULT Application::InitPyramidNormals() {
+    HRESULT hr = S_OK;
+
+    PlaneGenerator::CalcNormals(_pPyramidMesh.Vertices, _pPyramidMesh.Indices);
+
+    D3D11_BUFFER_DESC pbd;
+    ZeroMemory(&pbd, sizeof(pbd));
+    pbd.Usage = D3D11_USAGE_DEFAULT;
+    pbd.ByteWidth = _pPyramidVC;
+    pbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    pbd.CPUAccessFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA pInitData;
+    ZeroMemory(&pInitData, sizeof(pInitData));
+    pInitData.pSysMem = &_pPyramidMesh.Vertices[0];
+
+    hr = _pd3dDevice->CreateBuffer(&pbd, &pInitData, &_pPyramidVB);
+
+    if (FAILED(hr))
+        return hr;
+
+    return S_OK;
 }
 
 HRESULT Application::InitWindow(HINSTANCE hInstance, int nCmdShow)
@@ -407,7 +512,8 @@ HRESULT Application::InitWindow(HINSTANCE hInstance, int nCmdShow)
 
     // Create window
     _hInst = hInstance;
-    RECT rc = {0, 0, 640, 480};
+    //RECT rc = {0, 0, 640, 480};
+    RECT rc = { 0, 0, 1280, 960};
     AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
     _hWnd = CreateWindow(L"TutorialWindowClass", L"DX11 Framework", WS_OVERLAPPEDWINDOW,
                          CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
@@ -570,15 +676,23 @@ HRESULT Application::InitDevice()
     _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R16_UINT, 0);
 
     // Set vertex and index buffers for array of quads
-    stride = sizeof(PlaneGenerator::Vertex);
-    offset = 0;
+    stride = sizeof(Vertex);
     InitPlane();
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pQuadVB, &stride, &offset);
-    _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R16_UINT, 0);
+    _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R32_UINT, 0);
+
+    /*
+    InitCubeNormals();
+    _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
+    _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
+
+    InitPyramidNormals();
+    _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVB, &stride, &offset);
+    _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R16_UINT, 0);
+    */
 
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 
 	// Create the constant buffer
 	D3D11_BUFFER_DESC bd;
@@ -758,6 +872,9 @@ void Application::Update()
     );
 }
 
+/// <summary>
+/// 
+/// </summary>
 void Application::Draw()
 {
     //
@@ -772,6 +889,8 @@ void Application::Draw()
 	//
     // Update variables
     //
+    
+
     XMMATRIX world = XMLoadFloat4x4(&_world);
     XMMATRIX view = XMLoadFloat4x4(&_view);
     XMMATRIX projection = XMLoadFloat4x4(&_projection);
@@ -781,6 +900,9 @@ void Application::Draw()
 	cb.mView = XMMatrixTranspose(view);
 	cb.mProjection = XMMatrixTranspose(projection);
     cb.gTime = _gTime;
+    cb.DiffuseLight = _pLight.diffuseLight;
+    cb.DiffuseMtrl = _pLight.diffuseMaterial;
+    cb.LightVecW = _pLight.lightDirection;
 
 	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
@@ -788,19 +910,19 @@ void Application::Draw()
     UINT stride = sizeof(SimpleVertex);
     UINT offset = 0;
     //_pImmediateContext->IASetVertexBuffers(0, 1, &_pVertexBuffer, &stride, &offset);
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
+    //_pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVB, &stride, &offset);
 
     // Set index buffer
     //_pImmediateContext->IASetIndexBuffer(_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
+    //_pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
     _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R16_UINT, 0);
 
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     //
-    // Renders a triangle
+    // Renders a pyramid
     //
     _pImmediateContext->RSSetState(_wireFrame);
 	_pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
@@ -808,9 +930,11 @@ void Application::Draw()
     _pImmediateContext->PSSetConstantBuffers(0, 1, &_pConstantBuffer);
 	_pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
     _pImmediateContext->DrawIndexed(_pPyramidIC, 0, 0);
+    //_pImmediateContext->DrawIndexed(_pCubeIC, 0, 0);
 
-
+    //
     // Render cube array
+    //
 
     // Toggle wireframe
     if (_enableWireFrame) {
@@ -825,6 +949,7 @@ void Application::Draw()
         cb.mWorld = XMMatrixTranspose(world);
         _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
         _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
+        //_pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R32_UINT, 0);
         _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
@@ -855,14 +980,21 @@ void Application::Draw()
     */
 
     // quad floor wireframe
-    _pImmediateContext->RSSetState(_wireFrame);
+    //_pImmediateContext->RSSetState(_wireFrame);
     
     cb.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&_pPlane));
     cb.gTime = 0;
 
-    stride = sizeof(PlaneGenerator::Vertex);
+    stride = sizeof(Vertex);
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pQuadVB, &stride, &offset);
-    _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R16_UINT, 0);
+    /*
+    * due to DirectX fuckery! 
+    * c++ intrinsic int = 4 bytes = 32bits
+    * whereas <Window.h> UINT = 2 bytes = 16bits (aka SHORT!!)
+    * fucking Micro$haft!
+    */
+    //_pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R16_UINT, 0);
+    _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R32_UINT, 0);
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
@@ -872,4 +1004,11 @@ void Application::Draw()
     // Present our back buffer to our front buffer
     //
     _pSwapChain->Present(0, 0);
+}
+
+XMMATRIX Application::InverseTranspose(CXMMATRIX M) {
+    XMMATRIX A = M;
+    A.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+    XMVECTOR det = XMMatrixDeterminant(A);
+    return XMMatrixTranspose(XMMatrixInverse(&det, A));
 }

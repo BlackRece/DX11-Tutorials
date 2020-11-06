@@ -8,22 +8,10 @@
 #include <random>
 #include "resource.h"
 #include "PlaneGenerator.h"
+#include "Structures.h"
+#include "Lighting.h"
 
 using namespace DirectX;
-
-struct SimpleVertex
-{
-    XMFLOAT3 Pos;
-    XMFLOAT4 Color;
-};
-
-struct ConstantBuffer
-{
-	XMMATRIX mWorld;
-	XMMATRIX mView;
-	XMMATRIX mProjection;
-	float gTime;
-};
 
 class Application
 {
@@ -58,12 +46,14 @@ private:
 	bool					_enableWireFrame;
 
 	//pyramid
+	MeshData				_pPyramidMesh;
 	ID3D11Buffer*			_pPyramidVB;		//VertexBuffer;
 	ID3D11Buffer*			_pPyramidIB;		//IndexBuffer;
 	UINT					_pPyramidVC;		//VertexCount;
 	UINT					_pPyramidIC;		//IndexCount;
 
 	//cube
+	MeshData				_pCubeMesh;
 	ID3D11Buffer*			_pCubeVB;		//VertexBuffer;
 	ID3D11Buffer*			_pCubeIB;		//IndexBuffer;
 	UINT					_pCubeVC;		//VertexCount;
@@ -74,11 +64,16 @@ private:
 	XMFLOAT4X4				_pPlane;
 	ID3D11Buffer*			_pQuadVB;		//VertexBuffer;
 	ID3D11Buffer*			_pQuadIB;		//IndexBuffer;
+	XMFLOAT2				_pQuadDims;		//vertex counts of quad
+	XMFLOAT2				_pQuadArea;		//size of plane
+
 	UINT					_pQuadVC;		//VertexCount;
 	UINT					_pQuadIC;		//IndexCount;
-	XMFLOAT2				_pQuadDims;		//dimensions of quad
 
 	float					_gTime;
+
+	//lighting
+	Lighting				_pLight;
 
 	//randomiser util
 	std::random_device		randDevice;	
@@ -92,7 +87,10 @@ private:
 	HRESULT InitShadersAndInputLayout();
 	HRESULT InitVertexBuffer();
 	HRESULT InitIndexBuffer();
+
 	HRESULT InitPlane();
+	HRESULT InitCubeNormals();
+	HRESULT InitPyramidNormals();
 
 	UINT _WindowHeight;
 	UINT _WindowWidth;
@@ -102,6 +100,9 @@ public:
 	~Application();
 
 	HRESULT Initialise(HINSTANCE hInstance, int nCmdShow);
+
+	//TODO: move to maths helper class
+	static XMMATRIX InverseTranspose(CXMMATRIX M);
 
 	void Update();
 	void Draw();

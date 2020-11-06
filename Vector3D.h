@@ -17,12 +17,17 @@ public:
 	//Arithemetic Operators – note use of overloading
 	Vector3D operator+(const Vector3D& vec);   //addition
 	Vector3D& operator+=(const Vector3D& vec);//assign new result to vector
-	Vector3D operator-(const Vector3D& vec); //substraction
-	Vector3D& operator-=(const Vector3D& vec);//assign new result to vector
+
+	Vector3D operator- (const Vector3D& vec); //substraction
+	//Vector3D operator- (const Vector3D& lhs, const Vector3D& rhs);
+	Vector3D& operator-= (const Vector3D& vec);//assign new result to vector
+
 	Vector3D operator*(float value);    //multiplication
 	Vector3D& operator*=(float value);  //assign new result to vector.
+
 	Vector3D operator/(float value);    //division
 	Vector3D& operator/=(float value);  //assign new result to vector
+
 	Vector3D& operator=(const Vector3D& vec);
 
 	//Vector operations
@@ -30,12 +35,15 @@ public:
 	Vector3D cross_product(const Vector3D& vec); //cross_product
 	Vector3D normalization();   //normalized vector
 
-public: // <- shouldn't need this here since there's one on line 10!
-	//Scalar operations
 	float square(); //gives square of the vector
 	float distance(const Vector3D& vec); //distance between two vectors
 	float magnitude();  //magnitude of the vector
 
+	Vector3D ComputeNormal(
+		const Vector3D& p0,
+		const Vector3D& p1,
+		const Vector3D& p2
+	);
 
 	//Display operations 
 	float show_X(); //return x

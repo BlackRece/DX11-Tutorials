@@ -36,7 +36,12 @@ Vector3D& Vector3D ::operator+=(const Vector3D& vec) {
 }
 
 //substraction//
-Vector3D Vector3D ::operator-(const Vector3D& vec) {
+Vector3D operator-(const Vector3D& lhs, const Vector3D& rhs) {
+    //similar to addition
+    return Vector3D(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
+}
+
+Vector3D Vector3D::operator-(const Vector3D& vec) {
     //similar to addition
     return Vector3D(x - vec.x, y - vec.y, z - vec.z);
 }
@@ -119,16 +124,37 @@ Vector3D Vector3D::cross_product(const Vector3D& vec) {
 
 float Vector3D::magnitude() {
     //return square root of sum of the squared components
-    //float result = (sqrtf((x * x) + (y * y) + (z * z)));
-    return sqrtf(square());
+    return sqrtf(sqrtf((x * x) + (y * y) + (z * z)));
 }
+
+Vector3D Vector3D::ComputeNormal(
+    const Vector3D& p0,
+    const Vector3D& p1,
+    const Vector3D& p2
+) {
+    Vector3D u = p1 - p0;
+    Vector3D v = p2 - p0;
+    Vector3D result = u.cross_product(v);
+
+    return result.normalization();
+}
+
 float Vector3D::square() {
     //sum of the squared components
     return x * x + y * y + z * z;
 }
+
 Vector3D Vector3D::normalization() {
-    return *this;
+    float len = this->magnitude();
+    Vector3D result = Vector3D(
+        (x==0)? 0 : x/len,
+        (y==0)? 0 : y/len,
+        (z==0)? 0 : z/len
+    );
+
+    return result;
 }
+
 float Vector3D::distance(const Vector3D& vec) {
     //same as mag? = NOPE!!
     //d = ((x2-x1)^2 + (y2-y1)^2 + (z2-z1)^2)^0.5
