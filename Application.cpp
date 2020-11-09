@@ -422,11 +422,55 @@ HRESULT Application::InitPlane() {
     if (FAILED(hr))
         return hr;
 
+    UINT stride = sizeof(Vertex);
+    UINT offset = 0;
+    _pImmediateContext->IASetVertexBuffers(0, 1, &_pQuadVB, &stride, &offset);
+    _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R32_UINT, 0);
+
     return hr;
 }
 
 HRESULT Application::InitCubeNormals() {
     HRESULT hr = S_OK;
+
+    // Create vertex buffer
+    SimpleVertex cubeVertices[] =
+    {
+        // back square
+        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },  //tl
+        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },   //tr
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) }, //bl
+        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },  //br
+
+        // front square
+        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },  //tl
+        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },   //tr
+        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) }, //bl
+        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },  //br
+    };
+
+    _pCubeVC = sizeof(cubeVertices);        //224 bytes
+
+    for (int i = 0; i < (_pCubeVC / sizeof(SimpleVertex)); i++) {
+        _pCubeMesh.Vertices.push_back(Vertex(cubeVertices[i].Pos));
+    }
+
+    // Create index buffer
+    WORD cubeIndices[] =
+    {
+        0,1,2,  2,1,3,  // front
+        2,3,7,  7,6,2,  // bottom
+        1,5,7,  7,3,1,  // right
+        6,7,5,  5,4,6,  // back
+        4,0,2,  2,6,4,  // left
+        4,5,1,  1,0,4   // top
+    };
+
+    _pIndexCount = sizeof(cubeIndices) / sizeof(WORD);
+
+    for (int i = 0; i < _pIndexCount; i++) {
+        _pCubeMesh.Indices.push_back(cubeIndices[i]);
+    }
 
     PlaneGenerator::CalcNormals(_pCubeMesh.Vertices, _pCubeMesh.Indices);
 
@@ -464,11 +508,50 @@ HRESULT Application::InitCubeNormals() {
     if (FAILED(hr))
         return hr;
 
+    UINT stride = sizeof(Vertex);
+    UINT offset = 0;
+    _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
+    _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
+
     return hr;
 }
 
 HRESULT Application::InitPyramidNormals() {
     HRESULT hr = S_OK;
+
+    // create pyramid buffer
+    SimpleVertex pyramidVertices[] = {
+        // bottom square
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+
+        // top point
+        { XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) }
+    };
+
+    _pPyramidVC = sizeof(pyramidVertices);
+
+    for (int i = 0; i < (_pPyramidVC / sizeof(SimpleVertex)); i++) {
+        _pPyramidMesh.Vertices.push_back(Vertex(pyramidVertices[i].Pos));
+    }
+
+    // Create pyramid index buffer
+    WORD pyramidIndices[] =
+    {
+        0,1,3,  1,2,3,  // bottom
+        1,0,4,          // front
+        2,1,4,          // right
+        3,2,4,          // back
+        0,3,4           // left
+    };
+
+    _pPyramidIC = sizeof(pyramidIndices) / sizeof(WORD);
+
+    for (int i = 0; i < _pPyramidIC; i++) {
+        _pPyramidMesh.Indices.push_back(pyramidIndices[i]);
+    }
 
     PlaneGenerator::CalcNormals(_pPyramidMesh.Vertices, _pPyramidMesh.Indices);
 
@@ -487,6 +570,11 @@ HRESULT Application::InitPyramidNormals() {
 
     if (FAILED(hr))
         return hr;
+
+    UINT stride = sizeof(Vertex);
+    UINT offset = 0;
+    _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVB, &stride, &offset);
+    _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R16_UINT, 0);
 
     return S_OK;
 }
@@ -659,38 +747,15 @@ HRESULT Application::InitDevice()
 
 	InitShadersAndInputLayout();
 
-	InitVertexBuffer();
-
-    // Set vertex buffer
-    UINT stride = sizeof(SimpleVertex);
-    UINT offset = 0;
-    //_pImmediateContext->IASetVertexBuffers(0, 1, &_pVertexBuffer, &stride, &offset);
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVB, &stride, &offset);
-
-	InitIndexBuffer();
-
-    // Set index buffer
-    //_pImmediateContext->IASetIndexBuffer(_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
-    _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R16_UINT, 0);
-
-    // Set vertex and index buffers for array of quads
-    stride = sizeof(Vertex);
-    InitPlane();
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pQuadVB, &stride, &offset);
-    _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R32_UINT, 0);
-
     /*
-    InitCubeNormals();
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
-    _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
-
-    InitPyramidNormals();
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVB, &stride, &offset);
-    _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R16_UINT, 0);
+	InitVertexBuffer();
+	InitIndexBuffer();
     */
 
+    InitPlane();
+    InitCubeNormals();
+    InitPyramidNormals();
+    
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
