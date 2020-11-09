@@ -18,16 +18,16 @@ struct ConstantBuffer {
 	XMMATRIX mView;
 	XMMATRIX mProjection;
 
-	float gTime;
-
 	XMFLOAT4 DiffuseMtrl;
 	XMFLOAT4 DiffuseLight;
 	XMFLOAT3 LightVecW;
+
+	float gTime;
 };
 
 struct VertexNormals {
 	XMFLOAT3 Pos;
-	XMFLOAT4 Normal;
+	XMFLOAT3 Normal;
 
 };
 
