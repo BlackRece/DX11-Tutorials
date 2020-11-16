@@ -18,11 +18,30 @@ struct ConstantBuffer {
 	XMMATRIX mView;
 	XMMATRIX mProjection;
 
-	float gTime;
-
 	XMFLOAT4 DiffuseMtrl;
 	XMFLOAT4 DiffuseLight;
 	XMFLOAT3 LightVecW;
+
+	float gTime;
+
+	XMFLOAT4 AmbientMaterial;
+	XMFLOAT4 AmbientLight;
+
+	XMFLOAT4 SpecularMaterial;
+	XMFLOAT4 SpecularLight;
+	float SpecularPower;
+	XMFLOAT3 EyePosW;			// Camera position in world space
+};
+
+// TODO: change to class
+struct Camera {
+	XMVECTOR Eye;		//cam pos
+	XMVECTOR At;		//cam dir
+	XMVECTOR Up;		//cam up
+
+	XMFLOAT3 EyeToFloat3() {
+		return XMFLOAT3{ Eye.m128_f32[0], Eye.m128_f32[1], Eye.m128_f32[2] };
+	}
 };
 
 struct VertexNormals {
