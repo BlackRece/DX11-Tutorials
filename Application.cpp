@@ -190,8 +190,8 @@ HRESULT Application::InitShadersAndInputLayout()
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pIndexCount, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        //{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pIndexCount, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        //{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pIndexCount, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pIndexCount, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         //{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, _pPyramidIC, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
@@ -477,8 +477,9 @@ HRESULT Application::InitCubeNormals() {
     D3D11_BUFFER_DESC bd;
     ZeroMemory(&bd, sizeof(bd));
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = _pCubeVC;
-    bd.ByteWidth = sizeof(unsigned int) * _pCubeMesh.Vertices.size();
+    //bd.ByteWidth = _pCubeVC;
+    //bd.ByteWidth = sizeof(unsigned int) * _pCubeMesh.Vertices.size();
+    bd.ByteWidth = sizeof(Vertex) * _pCubeMesh.Vertices.size();
 
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bd.CPUAccessFlags = 0;
@@ -496,7 +497,7 @@ HRESULT Application::InitCubeNormals() {
     ZeroMemory(&ibd, sizeof(ibd));
 
     ibd.Usage = D3D11_USAGE_DEFAULT;
-    ibd.ByteWidth = _pCubeMesh.Indices.size()*sizeof(unsigned int);
+    ibd.ByteWidth = _pCubeMesh.Indices.size() * sizeof(unsigned int);
     ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     ibd.CPUAccessFlags = 0;
 
@@ -507,11 +508,6 @@ HRESULT Application::InitCubeNormals() {
 
     if (FAILED(hr))
         return hr;
-
-    UINT stride = sizeof(Vertex);
-    UINT offset = 0;
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
-    _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
 
     return hr;
 }
@@ -558,7 +554,8 @@ HRESULT Application::InitPyramidNormals() {
     D3D11_BUFFER_DESC pbd;
     ZeroMemory(&pbd, sizeof(pbd));
     pbd.Usage = D3D11_USAGE_DEFAULT;
-    pbd.ByteWidth = _pPyramidVC;
+    //pbd.ByteWidth = _pPyramidVC;
+    pbd.ByteWidth = sizeof(Vertex) * _pPyramidMesh.Vertices.size();
     pbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     pbd.CPUAccessFlags = 0;
 
@@ -571,10 +568,21 @@ HRESULT Application::InitPyramidNormals() {
     if (FAILED(hr))
         return hr;
 
-    UINT stride = sizeof(Vertex);
-    UINT offset = 0;
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVB, &stride, &offset);
-    _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R16_UINT, 0);
+    D3D11_BUFFER_DESC ibd;
+    ZeroMemory(&ibd, sizeof(ibd));
+
+    ibd.Usage = D3D11_USAGE_DEFAULT;
+    ibd.ByteWidth = _pPyramidMesh.Indices.size() * sizeof(unsigned int);
+    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    ibd.CPUAccessFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA iInitData;
+    ZeroMemory(&iInitData, sizeof(iInitData));
+    iInitData.pSysMem = &_pPyramidMesh.Indices[0];
+    hr = _pd3dDevice->CreateBuffer(&ibd, &iInitData, &_pPyramidIB);
+
+    if (FAILED(hr))
+        return hr;
 
     return S_OK;
 }
@@ -972,7 +980,8 @@ void Application::Draw()
 	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
     // Set vertex buffer
-    UINT stride = sizeof(SimpleVertex);
+    //UINT stride = sizeof(SimpleVertex);
+    UINT stride = sizeof(Vertex);
     UINT offset = 0;
     //_pImmediateContext->IASetVertexBuffers(0, 1, &_pVertexBuffer, &stride, &offset);
     //_pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
@@ -981,7 +990,7 @@ void Application::Draw()
     // Set index buffer
     //_pImmediateContext->IASetIndexBuffer(_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
     //_pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
-    _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R16_UINT, 0);
+    _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R32_UINT, 0);
 
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -1013,8 +1022,8 @@ void Application::Draw()
         world = XMLoadFloat4x4(&_cubes[i]);
         cb.mWorld = XMMatrixTranspose(world);
         _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
-        _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
-        //_pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R32_UINT, 0);
+        //_pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
+        _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R32_UINT, 0);
         _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
