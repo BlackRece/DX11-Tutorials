@@ -26,13 +26,12 @@ void PlaneGenerator::CreateGrid(float width, float depth,
 		for (unsigned int j = 0; j < col; ++j) {
 			float x = -halfWidth + j * dx;
 			meshData.Vertices[i * col + j].Position = Vector3D(x, 0.0f, z);
-			//meshData.Vertices[i * col + j].Position = Vector3D(x, z, 0.0f);
 
-			// Ignore for now, used for lighting.
+			//used for lighting.
 			meshData.Vertices[i * col + j].Normal = Vector3D(0.0f, 1.0f, 0.0f);
 			meshData.Vertices[i * col + j].TangentU = Vector3D(1.0f, 0.0f, 0.0f);
 
-			// Ignore for now, used for texturing.
+			//used for texturing.
 			meshData.Vertices[i * col + j].TexC.x = j * du;
 			meshData.Vertices[i * col + j].TexC.y = i * dv;
 		}
@@ -112,11 +111,6 @@ void PlaneGenerator::CalcNormals(
 		Vector3D v2 = verts[i2].Position;
 
 		//compute face normal
-		/*
-		Vector3D e0 = v1 - v0;
-		Vector3D e1 = v2 - v0;
-		Vector3D faceNormal = e0.cross_product(e1);
-		*/
 		Vector3D faceNormal = 
 			faceNormal.ComputeNormal(v0, v1, v2);
 
