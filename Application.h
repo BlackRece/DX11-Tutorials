@@ -34,6 +34,8 @@ private:
 	XMFLOAT4X4              _view;
 	XMFLOAT4X4              _projection;
 
+	Camera					_cam;		//TODO: allow for an array of cameras
+
 	XMFLOAT4X4*				_cubes;
 	UINT					_cubeNum;
 

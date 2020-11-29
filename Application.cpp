@@ -85,6 +85,15 @@ Application::Application()
 
     //lighting
     _pLight = Lighting();
+    _pLight.ambientLight = XMFLOAT4(0.2f, 0.2f, 0.2f, 0.0f);
+    _pLight.ambientMaterial = XMFLOAT4(0.2f, 0.2f, 0.2f, 0.0f);
+
+    _pLight.SpecularLight = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+    _pLight.SpecularMaterial = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+    _pLight.SpecularPower = 10.0f;
+
+    //camera
+    _cam = Camera();
 
     //setup random engine for cubes
     std::mt19937 rnd(randDevice());
@@ -119,18 +128,25 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 	XMStoreFloat4x4(&_world, XMMatrixIdentity());
 
     // Initialize the view matrix
+    /*
     // Forward
 	XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, -10.0f, 0.0f);    //cam pos
 	XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);      //cam dir
 	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);      //cam up
-    /*
+
     // Backward
     XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, 10.0f, 0.0f);    //cam pos
     XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);      //cam dir
     XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);      //cam up
-    */
 
 	XMStoreFloat4x4(&_view, XMMatrixLookAtLH(Eye, At, Up));
+    */
+
+    _cam.Eye = XMVectorSet(0.0f, 0.0f, -10.0f, 0.0f);    //cam pos
+    _cam.At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);      //cam dir
+    _cam.Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);      //cam up
+
+    XMStoreFloat4x4(&_view, XMMatrixLookAtLH(_cam.Eye, _cam.At, _cam.Up));
 
     // Initialize the projection matrix
 	XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(XM_PIDIV2, _WindowWidth / (FLOAT) _WindowHeight, 0.01f, 100.0f));
@@ -969,14 +985,31 @@ void Application::Draw()
     XMMATRIX projection = XMLoadFloat4x4(&_projection);
 
     ConstantBuffer cb;
+    //matrices
 	cb.mWorld = XMMatrixTranspose(world);
 	cb.mView = XMMatrixTranspose(view);
 	cb.mProjection = XMMatrixTranspose(projection);
+
+    //animation time (for animations performed by shader)
     cb.gTime = _gTime;
+
+    //lighting
+    //diffuse
     cb.DiffuseLight = _pLight.diffuseLight;
     cb.DiffuseMtrl = _pLight.diffuseMaterial;
     cb.LightVecW = _pLight.lightDirection;
 
+    //ambient
+    cb.AmbientLight = _pLight.ambientLight;
+    cb.AmbientMaterial = _pLight.ambientMaterial;
+
+    //specular
+    cb.SpecularLight = _pLight.SpecularLight;
+    cb.SpecularMaterial = _pLight.SpecularMaterial;
+    cb.SpecularPower = _pLight.SpecularPower;
+    cb.EyePosW = _cam.EyeToFloat3();
+
+    //update directX with cb
 	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
     UINT stride = sizeof(Vertex);
