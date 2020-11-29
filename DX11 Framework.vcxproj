@@ -376,6 +376,7 @@
   <ItemGroup />
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DX11 Framework.cpp" />
     <ClCompile Include="Lighting.cpp" />
     <ClCompile Include="PlaneGenerator.cpp" />
@@ -386,6 +387,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="Lighting.h" />
     <ClInclude Include="PlaneGenerator.h" />
     <CLInclude Include="resource.h" />

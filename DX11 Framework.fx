@@ -28,12 +28,26 @@ cbuffer ConstantBuffer : register( b0 )
     float3 EyePosW;			// Camera position in world space
 }
 
+Texture2D txDiffuse : register(t0);
+SamplerState samLinear : register(s0);
+
 //--------------------------------------------------------------------------------------
 struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
     //float3 Norm : NORMAL;
     float4 Color : COLOR0;
+    float2 Tex : TEXCOORD0;
+};
+
+struct VS_INPUT {
+    float4 Pos : POSITION;
+    float2 Tex : TEXCOORD0;
+};
+
+struct PS_INPUT {
+    float4 Pos : SV_POSITION;
+    float2 Tex : TEXCOORD0;
 };
 
 //--------------------------------------------------------------------------------------
@@ -83,6 +97,9 @@ VS_OUTPUT VS( float4 Pos : POSITION, float3 NormalL : NORMAL)
     // Copy over the diffuse alpha
     output.Color.a = DiffuseMtrl.a;
 
+    // Pass texture info
+    output.Tex = input.Tex;
+
     return output;
 }
 
@@ -90,7 +107,8 @@ VS_OUTPUT VS( float4 Pos : POSITION, float3 NormalL : NORMAL)
 //--------------------------------------------------------------------------------------
 // Pixel Shader
 //--------------------------------------------------------------------------------------
-float4 PS( VS_OUTPUT input ) : SV_Target
-{
+float4 PS(VS_OUTPUT input) : SV_Target{
+    float textureColour = txDiffuse.Sample(samLinear, input.Tex);
+
     return input.Color;
 }

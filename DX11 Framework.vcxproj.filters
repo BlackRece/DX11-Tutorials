@@ -16,6 +16,7 @@
     <ClInclude Include="PlaneGenerator.h" />
     <ClInclude Include="Structures.h" />
     <ClInclude Include="Lighting.h" />
+    <ClInclude Include="DDSTextureLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -23,6 +24,7 @@
     <ClCompile Include="Vector3D.cpp" />
     <ClCompile Include="PlaneGenerator.cpp" />
     <ClCompile Include="Lighting.cpp" />
+    <ClCompile Include="DDSTextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">

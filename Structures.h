@@ -47,8 +47,14 @@ struct Camera {
 struct VertexNormals {
 	XMFLOAT3 Pos;
 	XMFLOAT4 Normal;
-
 };
+
+struct VertexTextures {
+	XMFLOAT3 Pos;
+	XMFLOAT3 Norm;
+	XMFLOAT2 TexC;
+};
+
 
 struct Vertex {
 	Vector3D Position;
