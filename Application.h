@@ -55,21 +55,21 @@ private:
 
 	//cube
 	MeshData					_pCubeMesh;
-	ID3D11Buffer*				_pCubeVB;		//VertexBuffer;
-	ID3D11Buffer*				_pCubeIB;		//IndexBuffer;
-	UINT						_pCubeVC;		//VertexCount;
-	UINT						_pCubeIC;		//IndexCount;
+	ID3D11Buffer*				_pCubeVB;			//VertexBuffer;
+	ID3D11Buffer*				_pCubeIB;			//IndexBuffer;
+	UINT						_pCubeVC;			//VertexCount;
+	UINT						_pCubeIC;			//IndexCount;
 
 	//plain
 	PlaneGenerator*				_pQuadGen;
 	XMFLOAT4X4					_pPlane;
-	ID3D11Buffer*				_pQuadVB;		//VertexBuffer;
-	ID3D11Buffer*				_pQuadIB;		//IndexBuffer;
-	XMFLOAT2					_pQuadDims;		//vertex counts of quad
-	XMFLOAT2					_pQuadArea;		//size of plane
+	ID3D11Buffer*				_pQuadVB;			//VertexBuffer;
+	ID3D11Buffer*				_pQuadIB;			//IndexBuffer;
+	XMFLOAT2					_pQuadDims;			//vertex counts of quad
+	XMFLOAT2					_pQuadArea;			//size of plane
 
-	UINT						_pQuadVC;		//VertexCount;
-	UINT						_pQuadIC;		//IndexCount;
+	UINT						_pQuadVC;			//VertexCount;
+	UINT						_pQuadIC;			//IndexCount;
 
 	float						_gTime;
 
@@ -77,7 +77,8 @@ private:
 	Lighting					_pLight;
 
 	//texturing
-	ID3D11ShaderResourceView*	_pTextureRV;
+	ID3D11ShaderResourceView*	_pTextureRV;		//Texture
+	ID3D11SamplerState*			_pSamplerLinear;	//Sampler
 
 	//randomiser util
 	std::random_device			randDevice;	

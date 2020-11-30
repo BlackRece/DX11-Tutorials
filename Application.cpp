@@ -101,6 +101,7 @@ Application::Application()
 
     //texturing
     _pTextureRV = nullptr;
+    _pSamplerLinear = nullptr;
 
 }
 
@@ -892,10 +893,32 @@ HRESULT Application::InitDevice()
     if (FAILED(hr))
         return hr;
 
+    //
+    // Texturing and Sampling
+    ///
+
     // Load texture from file
     CreateDDSTextureFromFile(_pd3dDevice, L"Crate_COLOR.dds", nullptr, &_pTextureRV);
     // Select texture to use in pixel shader
     _pImmediateContext->PSSetShaderResources(0, 1, &_pTextureRV);
+
+    // Create the sample state
+    D3D11_SAMPLER_DESC sampDesc;
+    ZeroMemory(&sampDesc, sizeof(sampDesc));
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    sampDesc.MinLOD = 0;
+    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    hr = _pd3dDevice->CreateSamplerState(&sampDesc, &_pSamplerLinear);
+
+    _pImmediateContext->PSSetSamplers(0, 1, &_pSamplerLinear);
+
+    if (FAILED(hr))
+        return hr;
 
     return S_OK;
 }
