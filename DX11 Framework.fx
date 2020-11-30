@@ -53,7 +53,7 @@ struct PS_INPUT {
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
-VS_OUTPUT VS( float4 Pos : POSITION, float3 NormalL : NORMAL)
+VS_OUTPUT VS( float4 Pos : POSITION, float3 NormalL : NORMAL, VS_INPUT input)
 //VS_OUTPUT VS(float4 Pos : POSITION, float4 Color : COLOR)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
@@ -108,8 +108,8 @@ VS_OUTPUT VS( float4 Pos : POSITION, float3 NormalL : NORMAL)
 // Pixel Shader
 //--------------------------------------------------------------------------------------
 float4 PS(VS_OUTPUT input) : SV_Target{
-    float textureColour = txDiffuse.Sample(samLinear, input.Tex);
+    float4 textureColour = txDiffuse.Sample(samLinear, input.Tex);
 
     //return input.Color;
-    return textureColour;
+    return input.Color + textureColour;
 }
