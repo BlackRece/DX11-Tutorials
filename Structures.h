@@ -55,7 +55,6 @@ struct VertexTextures {
 	XMFLOAT2 TexC;
 };
 
-
 struct Vertex {
 	Vector3D Position;
 	Vector3D Normal;
@@ -79,6 +78,9 @@ struct Vertex {
 		TangentU(tx, ty, tz), TexC(u, v) {}
 	Vertex(XMFLOAT3 pos) :
 		Position(pos.x, pos.y, pos.z) {}
+	Vertex(XMFLOAT3 pos, XMFLOAT2 uv) :
+		Position(pos.x, pos.y, pos.z),
+		TexC(uv.x, uv.y) {}
 };
 
 struct MeshData {
