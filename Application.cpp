@@ -1037,17 +1037,13 @@ void Application::Draw()
     //update directX with cb
 	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
-    // Set vertex buffer
-    //UINT stride = sizeof(SimpleVertex);
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
-    //_pImmediateContext->IASetVertexBuffers(0, 1, &_pVertexBuffer, &stride, &offset);
-    //_pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
+    
+    // Set vertex buffer
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVB, &stride, &offset);
 
     // Set index buffer
-    //_pImmediateContext->IASetIndexBuffer(_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    //_pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
     _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R32_UINT, 0);
 
     // Set primitive topology
