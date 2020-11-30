@@ -52,8 +52,9 @@ struct VertexNormals {
 struct VertexTextures {
 	XMFLOAT3 Pos;
 	XMFLOAT3 Norm;
-	XMFLOAT2 Texc;
+	XMFLOAT2 TexC;
 };
+
 
 struct Vertex {
 	Vector3D Position;

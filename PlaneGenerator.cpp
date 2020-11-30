@@ -97,7 +97,7 @@ void PlaneGenerator::CalcNormals(
 	std::vector<Vertex> verts,
 	std::vector<unsigned int> inds
 ) {
-	float faces = inds.size() / 3;
+	int faces = inds.size() / 3;
 
 	for (int i = 0; i < faces; i++) {
 		//indices of the ith triangle
@@ -126,4 +126,8 @@ void PlaneGenerator::CalcNormals(
 	// the triangles that share v, so now we just need to normalize.
 	for (unsigned int i = 0; i < verts.size(); ++i)
 		verts[i].Normal.normalization();
+}
+
+void PlaneGenerator::TextureCube(std::vector<unsigned int>inds) {
+	for (unsigned int i = 0; i < inds.size(); i++){}
 }

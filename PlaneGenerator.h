@@ -26,6 +26,8 @@ public:
 		std::vector<unsigned int> inds
 	);
 
+	void TextureCube(std::vector<unsigned int> inds);
+
 	float GetHeight(float x, float z) const
 		{ return 0.3f * (z * sinf(0.1f * x) + x * cosf(0.1f * z)); }
 };

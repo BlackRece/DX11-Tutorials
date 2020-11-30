@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "DDSTextureLoader.h"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -97,6 +98,9 @@ Application::Application()
 
     //setup random engine for cubes
     std::mt19937 rnd(randDevice());
+
+    //texturing
+    _pTextureRV = nullptr;
 
 }
 
@@ -234,10 +238,26 @@ HRESULT Application::InitVertexBuffer()
 
     _pCubeVC = sizeof(cubeVertices);        //224 bytes
 
-    for (int i = 0; i < (_pCubeVC / sizeof(SimpleVertex)); i++) {
+    for (unsigned int i = 0; i < (_pCubeVC / sizeof(SimpleVertex)); i++) {
         _pCubeMesh.Vertices.push_back(Vertex(cubeVertices[i].Pos));
     }
     
+    VertexTextures cubeVerTexC[] =
+    {
+        // back square
+        { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //tl
+        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //tr
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //bl
+        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //br
+
+        // front square
+        { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //tl
+        { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //tr
+        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //bl
+        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //br
+
+
+    };
     
     D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
@@ -269,7 +289,7 @@ HRESULT Application::InitVertexBuffer()
 
     _pPyramidVC = sizeof(pyramidVertices);
 
-    for (int i = 0; i < (_pPyramidVC / sizeof(SimpleVertex)); i++) {
+    for (unsigned int i = 0; i < (_pPyramidVC / sizeof(SimpleVertex)); i++) {
         _pPyramidMesh.Vertices.push_back(Vertex(pyramidVertices[i].Pos));
     }
 
@@ -310,7 +330,7 @@ HRESULT Application::InitIndexBuffer()
 
     _pIndexCount = sizeof(cubeIndices)/sizeof(WORD);
 
-    for (int i = 0; i < _pIndexCount; i++) {
+    for (unsigned int i = 0; i < _pIndexCount; i++) {
         _pCubeMesh.Indices.push_back(cubeIndices[i]);
     }
 
@@ -344,7 +364,7 @@ HRESULT Application::InitIndexBuffer()
 
     _pPyramidIC = sizeof(pyramidIndices) / sizeof(WORD);
 
-    for (int i = 0; i < _pPyramidIC; i++) {
+    for (unsigned int i = 0; i < _pPyramidIC; i++) {
         _pPyramidMesh.Indices.push_back(pyramidIndices[i]);
     }
     
@@ -372,7 +392,7 @@ HRESULT Application::InitPlane() {
 
     // generate plane 
     _pQuadGen->CreateGrid(
-        (UINT)_pQuadArea.x, (UINT)_pQuadArea.y,     //size of area for plane
+        _pQuadArea.x, _pQuadArea.y,                 //size of area for plane
         (UINT)_pQuadDims.x, (UINT)_pQuadDims.y,     //number of vertices per width and height
         _pQuadGen->_meshData                        //the generated vertices and indices of plane
     );
@@ -452,7 +472,7 @@ HRESULT Application::InitCubeNormals() {
 
     _pCubeVC = sizeof(cubeVertices);        //224 bytes
 
-    for (int i = 0; i < (_pCubeVC / sizeof(SimpleVertex)); i++) {
+    for (unsigned int i = 0; i < (_pCubeVC / sizeof(SimpleVertex)); i++) {
         _pCubeMesh.Vertices.push_back(Vertex(cubeVertices[i].Pos));
     }
 
@@ -469,7 +489,7 @@ HRESULT Application::InitCubeNormals() {
 
     _pIndexCount = sizeof(cubeIndices) / sizeof(WORD);
 
-    for (int i = 0; i < _pIndexCount; i++) {
+    for (unsigned int i = 0; i < _pIndexCount; i++) {
         _pCubeMesh.Indices.push_back(cubeIndices[i]);
     }
 
@@ -530,7 +550,7 @@ HRESULT Application::InitPyramidNormals() {
 
     _pPyramidVC = sizeof(pyramidVertices);
 
-    for (int i = 0; i < (_pPyramidVC / sizeof(SimpleVertex)); i++) {
+    for (unsigned int i = 0; i < (_pPyramidVC / sizeof(SimpleVertex)); i++) {
         _pPyramidMesh.Vertices.push_back(Vertex(pyramidVertices[i].Pos));
     }
 
@@ -546,7 +566,7 @@ HRESULT Application::InitPyramidNormals() {
 
     _pPyramidIC = sizeof(pyramidIndices) / sizeof(WORD);
 
-    for (int i = 0; i < _pPyramidIC; i++) {
+    for (unsigned int i = 0; i < _pPyramidIC; i++) {
         _pPyramidMesh.Indices.push_back(pyramidIndices[i]);
     }
 
@@ -790,6 +810,11 @@ HRESULT Application::InitDevice()
     if (FAILED(hr))
         return hr;
 
+    // Load texture from file
+    CreateDDSTextureFromFile(_pd3dDevice, L"Crate_COLOR.dds", nullptr, &_pTextureRV);
+    // Select texture to use in pixel shader
+    _pImmediateContext->PSSetShaderResources(0, 1, &_pTextureRV);
+
     return S_OK;
 }
 
@@ -997,17 +1022,13 @@ void Application::Draw()
     //update directX with cb
 	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
-    // Set vertex buffer
-    //UINT stride = sizeof(SimpleVertex);
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
-    //_pImmediateContext->IASetVertexBuffers(0, 1, &_pVertexBuffer, &stride, &offset);
-    //_pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
+    
+    // Set vertex buffer
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVB, &stride, &offset);
 
     // Set index buffer
-    //_pImmediateContext->IASetIndexBuffer(_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    //_pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
     _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R32_UINT, 0);
 
     // Set primitive topology
