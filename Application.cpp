@@ -469,8 +469,7 @@ HRESULT Application::InitCubeNormals() {
     }
     */
 
-    VertexTextures cubeVerTexC[] =
-    {
+    VertexTextures cubeVerTexC[] = {
         // back square (0-3)
         { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //0
         { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //1
@@ -484,28 +483,28 @@ HRESULT Application::InitCubeNormals() {
         { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //7
 
         // bottom (for texturing) (8-11)
-        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //2
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 0.0f) }, //3
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //6
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //7
+        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //2 lbb
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 0.0f) }, //3 rbb
+        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, //6 rbf
+        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //7 lbf
 
         // right (for texturing) (12-15)
-        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //1
-        { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //5
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //3
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //7
+        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //1 rtb
+        { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //5 rtf
+        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, //3 rbb
+        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //7 rbf
 
         // left (for texturing) (16-19)
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(1.0f, 0.0f) }, //0
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //6
-        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //2
+        { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, // ltf
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, // lbb
+        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, // lbf
+        { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, // ltb
 
         // top (for texturing) (20-23)
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(1.0f, 0.0f) }, //4
-        { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //5
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //0
-        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //1
+        { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //4 ltf
+        { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //5 rtf
+        { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //0 ltb
+        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //1 rtb
     };  // 24 in total
 
     _pCubeVC = sizeof(cubeVerTexC);        //224 bytes
@@ -527,8 +526,7 @@ HRESULT Application::InitCubeNormals() {
     */
 
     // Create index buffer
-    WORD cubeIndices[] =
-    {
+    WORD cubeIndices[] = {
         0,1,2,  2,1,3,      // back
         2,3,7,  7,6,2,      // bottom
         1,5,7,  7,3,1,      // right
@@ -539,27 +537,19 @@ HRESULT Application::InitCubeNormals() {
 
     WORD cubeIndTex[] = {
         0,1,2,      2,1,3,      // back
-        
-        //6,7,5,    5,4,6,      // front
-        4,5,6,      6,5,7,
+        6,7,5,      5,4,6,      // front
+        11,9,8,     10,9,11,    // bottom
+        15,12,13,   14,12,15,   // right
 
-        //2,3,7,    7,6,2,      // bottom
-        8,9,10,     10,9,11,    
+        16,19,18,   18,19,17,   // left
 
-        //1,5,7,    7,3,1,      // right
-        12,13,14,   14,13,15,
-
-        //4,0,2,    2,6,4,      // left
-        16,17,18,   18,17,19,
-
-        //4,5,1,    1,0,4       // top
-        20,21,22,   22,21,23
+        20,21,23,   23,22,20    // top
     };
 
     //_pIndexCount = sizeof(cubeIndices) / sizeof(WORD);
-    _pIndexCount = sizeof(cubeIndTex) / sizeof(WORD);
+    _pCubeIC = sizeof(cubeIndTex) / sizeof(WORD);
 
-    for (unsigned int i = 0; i < _pIndexCount; i++) {
+    for (unsigned int i = 0; i < _pCubeIC; i++) {
         //_pCubeMesh.Indices.push_back(cubeIndices[i]);
         _pCubeMesh.Indices.push_back(cubeIndTex[i]);
     }
@@ -611,8 +601,8 @@ HRESULT Application::InitPyramidNormals() {
     // create pyramid buffer
     SimpleVertex pyramidVertices[] = {
         // bottom square
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },    lbf
+        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },     
         { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
         { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
 
@@ -629,28 +619,28 @@ HRESULT Application::InitPyramidNormals() {
 
     // create pyramid buffer
     VertexTextures pyramidVertTex[] = {
-        // bottom square
+        // bottom square (0-3)
         { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //0
         { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //1
         { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 0.0f) }, //2
         { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(1.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //3
 
-        // top point first - front face
+        // top point first - front face (4-6)
         { XMFLOAT3(0.0f, 1.0f, 0.0f),       XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
         { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //1
         { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //0
 
-        // right face
+        // right face (7-9)
         { XMFLOAT3(0.0f, 1.0f, 0.0f),       XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
         { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, //2
         { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //1
 
-        // back face
+        // back face (10-12)
         { XMFLOAT3(0.0f, 1.0f, 0.0f),       XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
         { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(1.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //3
         { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //2
 
-        // left face
+        // left face (13-15)
         { XMFLOAT3(0.0f, 1.0f, 0.0f),       XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
         { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, //0
         { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(1.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //3
@@ -666,19 +656,27 @@ HRESULT Application::InitPyramidNormals() {
     }
 
     // Create pyramid index buffer
-    WORD pyramidIndices[] =
-    {
+    /*
+    WORD pyramidIndices[] = {
         0,1,3,  1,2,3,  // bottom
         1,0,4,          // front
         2,1,4,          // right
         3,2,4,          // back
         0,3,4           // left
     };
+    */
+    WORD pyramidIndTex[] = {
+        0,1,3,  1,2,3,  // bottom
+        5,6,4,          // front
+        8,9,7,          // right
+        11,12,10,       // back
+        14,15,13        // left
+    };
 
-    _pPyramidIC = sizeof(pyramidIndices) / sizeof(WORD);
+    _pPyramidIC = sizeof(pyramidIndTex) / sizeof(WORD);
 
     for (unsigned int i = 0; i < _pPyramidIC; i++) {
-        _pPyramidMesh.Indices.push_back(pyramidIndices[i]);
+        _pPyramidMesh.Indices.push_back(pyramidIndTex[i]);
     }
 
     PlaneGenerator::CalcNormals(_pPyramidMesh.Vertices, _pPyramidMesh.Indices);
@@ -1012,7 +1010,7 @@ void Application::Update()
     }
 
     //
-    // Animate the cube
+    // Animate the pyramid
     //
 	XMStoreFloat4x4(&_world, 
         XMMatrixScaling(4.0f,4.0f,4.0f) *
@@ -1184,14 +1182,13 @@ void Application::Draw()
     /* solar system simulation */
     for (int i = 0; i < 3; i++) {
         world = XMLoadFloat4x4(&_cubes[i]);
-        //cb.mWorld = XMMatrixTranspose(world);
         cbl.mWorld = XMMatrixTranspose(world);
         _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
         _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R32_UINT, 0);
         _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
-        _pImmediateContext->DrawIndexed(_pIndexCount, 0, 0);
+        _pImmediateContext->DrawIndexed(_pCubeIC, 0, 0);
     }
 
     /* multiple cubes
