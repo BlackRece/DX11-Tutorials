@@ -129,6 +129,13 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         return E_FAIL;
     }
 
+    /*
+    int sizeUINT = sizeof(UINT);
+    int sizeint = sizeof(int);
+    int sizeu_int = sizeof(unsigned int);
+    int sizeWORD = sizeof(WORD);
+    */
+
 	// Initialize the world matrix
 	XMStoreFloat4x4(&_world, XMMatrixIdentity());
 
@@ -196,9 +203,9 @@ HRESULT Application::InitShadersAndInputLayout()
     // Define the input layout
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	UINT numElements = ARRAYSIZE(layout);
@@ -464,42 +471,42 @@ HRESULT Application::InitCubeNormals() {
 
     VertexTextures cubeVerTexC[] =
     {
-        // back square
+        // back square (0-3)
         { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //0
         { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //1
         { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //2
         { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //3
 
-        // front square
+        // front square (4-7)
         { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
         { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //5
         { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //6
         { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //7
 
-        // bottom (for texturing)
+        // bottom (for texturing) (8-11)
         { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //2
         { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 0.0f) }, //3
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //7
         { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //6
+        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //7
 
-        // right (for texturing)
+        // right (for texturing) (12-15)
         { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //1
         { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //5
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //7
         { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //3
+        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //7
 
-        // left (for texturing)
+        // left (for texturing) (16-19)
         { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
         { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(1.0f, 0.0f) }, //0
-        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //2
         { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //6
+        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //2
 
-        // top (for texturing)
+        // top (for texturing) (20-23)
         { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(1.0f, 0.0f) }, //4
         { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //5
-        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //1
         { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //0
-    };
+        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //1
+    };  // 24 in total
 
     _pCubeVC = sizeof(cubeVerTexC);        //224 bytes
 
@@ -522,18 +529,39 @@ HRESULT Application::InitCubeNormals() {
     // Create index buffer
     WORD cubeIndices[] =
     {
-        0,1,2,  2,1,3,  // front
-        2,3,7,  7,6,2,  // bottom
-        1,5,7,  7,3,1,  // right
-        6,7,5,  5,4,6,  // back
-        4,0,2,  2,6,4,  // left
-        4,5,1,  1,0,4   // top
+        0,1,2,  2,1,3,      // back
+        2,3,7,  7,6,2,      // bottom
+        1,5,7,  7,3,1,      // right
+        6,7,5,  5,4,6,      // front
+        4,0,2,  2,6,4,      // left
+        4,5,1,  1,0,4       // top
     };
 
-    _pIndexCount = sizeof(cubeIndices) / sizeof(WORD);
+    WORD cubeIndTex[] = {
+        0,1,2,      2,1,3,      // back
+        
+        //6,7,5,    5,4,6,      // front
+        4,5,6,      6,5,7,
+
+        //2,3,7,    7,6,2,      // bottom
+        8,9,10,     10,9,11,    
+
+        //1,5,7,    7,3,1,      // right
+        12,13,14,   14,13,15,
+
+        //4,0,2,    2,6,4,      // left
+        16,17,18,   18,17,19,
+
+        //4,5,1,    1,0,4       // top
+        20,21,22,   22,21,23
+    };
+
+    //_pIndexCount = sizeof(cubeIndices) / sizeof(WORD);
+    _pIndexCount = sizeof(cubeIndTex) / sizeof(WORD);
 
     for (unsigned int i = 0; i < _pIndexCount; i++) {
-        _pCubeMesh.Indices.push_back(cubeIndices[i]);
+        //_pCubeMesh.Indices.push_back(cubeIndices[i]);
+        _pCubeMesh.Indices.push_back(cubeIndTex[i]);
     }
 
     PlaneGenerator::CalcNormals(_pCubeMesh.Vertices, _pCubeMesh.Indices);
@@ -875,7 +903,7 @@ HRESULT Application::InitDevice()
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(ConstantBuffer);
+	bd.ByteWidth = sizeof(ConstantBufferLite);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
     hr = _pd3dDevice->CreateBuffer(&bd, nullptr, &_pConstantBuffer);
@@ -1093,39 +1121,34 @@ void Application::Draw()
 	//
     // Update variables
     //
-    
-
     XMMATRIX world = XMLoadFloat4x4(&_world);
     XMMATRIX view = XMLoadFloat4x4(&_view);
     XMMATRIX projection = XMLoadFloat4x4(&_projection);
 
-    ConstantBuffer cb;
+    //use efficient constant buffer
+    //by pre multiplying values on cpu
+    ConstantBufferLite cbl;
+
     //matrices
-	cb.mWorld = XMMatrixTranspose(world);
-	cb.mView = XMMatrixTranspose(view);
-	cb.mProjection = XMMatrixTranspose(projection);
-
-    //animation time (for animations performed by shader)
-    cb.gTime = _gTime;
-
+    cbl.mWorld = XMMatrixTranspose(world);
+    cbl.mViewProj = XMMatrixTranspose(XMMatrixMultiply(view, projection));
+    
     //lighting
-    //diffuse
-    cb.DiffuseLight = _pLight.diffuseLight;
-    cb.DiffuseMtrl = _pLight.diffuseMaterial;
-    cb.LightVecW = _pLight.lightDirection;
-
     //ambient
-    cb.AmbientLight = _pLight.ambientLight;
-    cb.AmbientMaterial = _pLight.ambientMaterial;
+    cbl.mAmbient = XMFLoat4Multiply(_pLight.ambientMaterial, _pLight.ambientMaterial);
+    
+    //diffuse
+    cbl.mDiffuse = XMFLoat4Multiply(_pLight.diffuseMaterial, _pLight.diffuseLight);
+    cbl.mDiffuseAlpha = _pLight.diffuseMaterial.w;
+    cbl.mLightVecW = _pLight.lightDirection;
 
     //specular
-    cb.SpecularLight = _pLight.SpecularLight;
-    cb.SpecularMaterial = _pLight.SpecularMaterial;
-    cb.SpecularPower = _pLight.SpecularPower;
-    cb.EyePosW = _cam.EyeToFloat3();
+    cbl.mSpecular = XMFLoat4Multiply(_pLight.SpecularMaterial, _pLight.SpecularLight);
+    cbl.SpecularPower = _pLight.SpecularPower;
+    cbl.EyePosW = _cam.EyeToFloat3();
 
-    //update directX with cb
-	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+    //update directX with cb lite
+	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
@@ -1161,12 +1184,12 @@ void Application::Draw()
     /* solar system simulation */
     for (int i = 0; i < 3; i++) {
         world = XMLoadFloat4x4(&_cubes[i]);
-        cb.mWorld = XMMatrixTranspose(world);
+        //cb.mWorld = XMMatrixTranspose(world);
+        cbl.mWorld = XMMatrixTranspose(world);
         _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
-        //_pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R16_UINT, 0);
         _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R32_UINT, 0);
         _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+        _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
         _pImmediateContext->DrawIndexed(_pIndexCount, 0, 0);
     }
@@ -1197,8 +1220,7 @@ void Application::Draw()
     // quad floor wireframe
     //_pImmediateContext->RSSetState(_wireFrame);
     
-    cb.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&_pPlane));
-    cb.gTime = 0;
+    cbl.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&_pPlane));
 
     stride = sizeof(Vertex);
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pQuadVB, &stride, &offset);
@@ -1211,7 +1233,7 @@ void Application::Draw()
     //_pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R16_UINT, 0);
     _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R32_UINT, 0);
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
     _pImmediateContext->DrawIndexed(_pQuadGen->_indexCount, 0, 0);
 
@@ -1226,4 +1248,13 @@ XMMATRIX Application::InverseTranspose(CXMMATRIX M) {
     A.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
     XMVECTOR det = XMMatrixDeterminant(A);
     return XMMatrixTranspose(XMMatrixInverse(&det, A));
+}
+
+XMFLOAT4 Application::XMFLoat4Multiply(XMFLOAT4& lhs, XMFLOAT4& rhs) {
+    XMFLOAT4 result;
+    XMVECTOR tLhs = XMLoadFloat4(&lhs);
+    XMVECTOR tRhs = XMLoadFloat4(&rhs);
+    XMStoreFloat4(&result, tLhs * tRhs);
+
+    return result;
 }

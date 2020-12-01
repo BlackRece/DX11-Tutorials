@@ -33,6 +33,22 @@ struct ConstantBuffer {
 	XMFLOAT3 EyePosW;			// Camera position in world space
 };
 
+struct ConstantBufferLite {
+	XMMATRIX mWorld;
+	XMMATRIX mViewProj;
+
+	XMFLOAT4 mDiffuse;
+	float	 mDiffuseAlpha;
+	XMFLOAT3 mLightVecW;
+
+	XMFLOAT4 mAmbient;
+
+	XMFLOAT4 mSpecular;
+	float	 SpecularPower;
+
+	XMFLOAT3 EyePosW;			// Camera position in world space
+};
+
 // TODO: change to class
 struct Camera {
 	XMVECTOR Eye;		//cam pos
@@ -58,8 +74,8 @@ struct VertexTextures {
 struct Vertex {
 	Vector3D Position;
 	Vector3D Normal;
-	Vector3D TangentU;		// angle?
 	Vector3D TexC;			// uv's - ignore z
+	Vector3D TangentU;		// angle?
 
 	Vertex() {}
 	Vertex(

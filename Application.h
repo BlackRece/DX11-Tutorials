@@ -108,6 +108,7 @@ public:
 
 	//TODO: move to maths helper class
 	static XMMATRIX InverseTranspose(CXMMATRIX M);
+	static XMFLOAT4 XMFLoat4Multiply(XMFLOAT4& lhs, XMFLOAT4& rhs);
 
 	void Update();
 	void Draw();
