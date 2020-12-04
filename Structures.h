@@ -8,7 +8,7 @@
 
 using namespace DirectX;
 
-struct SimpleVertex {
+struct SimpleVertexOld {
 	XMFLOAT3 Pos;
 	XMFLOAT4 Color;
 };
@@ -99,7 +99,7 @@ struct Vertex {
 		TexC(uv.x, uv.y) {}
 };
 
-struct MeshData {
+struct MeshArray {
 	std::vector<Vertex> Vertices;
 	std::vector<unsigned int> Indices;
 };

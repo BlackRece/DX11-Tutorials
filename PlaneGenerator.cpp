@@ -1,7 +1,7 @@
 #include "PlaneGenerator.h"
 
 void PlaneGenerator::CreateGrid(float width, float depth,
-	unsigned int row, unsigned int col, MeshData& meshData) {
+	unsigned int row, unsigned int col, MeshArray& meshData) {
 	
 	_row = row;
 	_col = col;
@@ -41,7 +41,7 @@ void PlaneGenerator::CreateGrid(float width, float depth,
 	std::cout << "Vertex count: " << _vertexCount << std::endl;
 }
 
-void PlaneGenerator::CreateIndices(MeshData& meshData) {
+void PlaneGenerator::CreateIndices(MeshArray& meshData) {
 	//
 	// Create the indices.
 	//

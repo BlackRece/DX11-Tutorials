@@ -10,6 +10,7 @@
 #include "PlaneGenerator.h"
 #include "Structures.h"
 #include "Lighting.h"
+#include "OBJLoader.h"
 
 using namespace DirectX;
 
@@ -47,14 +48,14 @@ private:
 	bool						_enableWireFrame;
 
 	//pyramid
-	MeshData					_pPyramidMesh;
+	MeshArray					_pPyramidMesh;
 	ID3D11Buffer*				_pPyramidVB;		//VertexBuffer;
 	ID3D11Buffer*				_pPyramidIB;		//IndexBuffer;
 	UINT						_pPyramidVC;		//VertexCount;
 	UINT						_pPyramidIC;		//IndexCount;
 
 	//cube
-	MeshData					_pCubeMesh;
+	MeshArray					_pCubeMesh;
 	ID3D11Buffer*				_pCubeVB;			//VertexBuffer;
 	ID3D11Buffer*				_pCubeIB;			//IndexBuffer;
 	UINT						_pCubeVC;			//VertexCount;
@@ -79,6 +80,10 @@ private:
 	//texturing
 	ID3D11ShaderResourceView*	_pTextureRV;		//Texture
 	ID3D11SamplerState*			_pSamplerLinear;	//Sampler
+
+	//OBJ loader
+	MeshData					objMeshDataA;
+	MeshData					objMeshDataB;
 
 	//randomiser util
 	std::random_device			randDevice;	

@@ -58,14 +58,14 @@ Application::Application()
     _enableWireFrame = false;
 
     //pyramid
-    _pPyramidMesh = MeshData();
+    _pPyramidMesh = MeshArray();
     _pPyramidVB = nullptr;		//VertexBuffer;
     _pPyramidIB = nullptr;		//IndexBuffer;
     _pPyramidVC = 0;    		//VertexCount;
     _pPyramidIC = 0;            //IndexCount;
 
     //cube
-    _pCubeMesh = MeshData();
+    _pCubeMesh = MeshArray();
     _pCubeVB = nullptr;		    //VertexBuffer;
     _pCubeIB = nullptr;		    //IndexBuffer;
     _pCubeVC = 0;    		    //VertexCount;
@@ -102,7 +102,6 @@ Application::Application()
     //texturing
     _pTextureRV = nullptr;
     _pSamplerLinear = nullptr;
-
 }
 
 Application::~Application()
@@ -129,13 +128,6 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         return E_FAIL;
     }
 
-    /*
-    int sizeUINT = sizeof(UINT);
-    int sizeint = sizeof(int);
-    int sizeu_int = sizeof(unsigned int);
-    int sizeWORD = sizeof(WORD);
-    */
-
 	// Initialize the world matrix
 	XMStoreFloat4x4(&_world, XMMatrixIdentity());
 
@@ -149,11 +141,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
     // Initialize the projection matrix
 	XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(XM_PIDIV2, _WindowWidth / (FLOAT) _WindowHeight, 0.01f, 100.0f));
 
-    // Initialize the matrices of cubes
-    _cubes = new XMFLOAT4X4[_cubeNum];
-    for (UINT i = 0; i < _cubeNum; i++) {
-        XMStoreFloat4x4(&_cubes[i], XMMatrixIdentity());
-    }
+    
 
 	return S_OK;
 }
@@ -229,7 +217,7 @@ HRESULT Application::InitVertexBuffer()
 	HRESULT hr;
 
     // Create vertex buffer
-    SimpleVertex cubeVertices[] =
+    SimpleVertexOld cubeVertices[] =
     {
         // back square
         { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },  //tl
@@ -246,7 +234,7 @@ HRESULT Application::InitVertexBuffer()
 
     _pCubeVC = sizeof(cubeVertices);        //224 bytes
 
-    for (unsigned int i = 0; i < (_pCubeVC / sizeof(SimpleVertex)); i++) {
+    for (unsigned int i = 0; i < (_pCubeVC / sizeof(SimpleVertexOld)); i++) {
         _pCubeMesh.Vertices.push_back(Vertex(cubeVertices[i].Pos));
     }
     
@@ -267,7 +255,7 @@ HRESULT Application::InitVertexBuffer()
         return hr;
     
     // create pyramid buffer
-    SimpleVertex pyramidVertices[] = {
+    SimpleVertexOld pyramidVertices[] = {
         // bottom square
         { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },  
         { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },   
@@ -280,7 +268,7 @@ HRESULT Application::InitVertexBuffer()
 
     _pPyramidVC = sizeof(pyramidVertices);
 
-    for (unsigned int i = 0; i < (_pPyramidVC / sizeof(SimpleVertex)); i++) {
+    for (unsigned int i = 0; i < (_pPyramidVC / sizeof(SimpleVertexOld)); i++) {
         _pPyramidMesh.Vertices.push_back(Vertex(pyramidVertices[i].Pos));
     }
 
@@ -391,7 +379,7 @@ HRESULT Application::InitPlane() {
     /*
     // DEBUG: variable size check
     int sizeVertex = sizeof(Vertex);            //48
-    int sizeMeshData = sizeof(MeshData);        //32
+    int sizeMeshData = sizeof(MeshArray);        //32
     int sizeVertices = sizeof(_pQuadGen->_meshData.Vertices);   //16
     int sizeIndices = sizeof(_pQuadGen->_meshData.Indices);     //16
     int sizeUnsignedInt= sizeof(unsigned int);                  //4
@@ -893,6 +881,19 @@ HRESULT Application::InitDevice()
     InitPlane();
     InitCubeNormals();
     InitPyramidNormals();
+
+    // Initialize the matrices of cubes
+    _cubes = new XMFLOAT4X4[_cubeNum];
+    for (UINT i = 0; i < _cubeNum; i++) {
+        XMStoreFloat4x4(&_cubes[i], XMMatrixIdentity());
+    }
+
+    // Initialize a loaded object
+    //3ds Max
+    objMeshDataA = OBJLoader::Load("Models/3dsMax/torusKnot.obj", _pd3dDevice);
+
+    //Blender
+    objMeshDataB = OBJLoader::Load("Models/Blender/donut.obj", _pd3dDevice, false);
     
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -924,7 +925,7 @@ HRESULT Application::InitDevice()
     ///
 
     // Load texture from file
-    CreateDDSTextureFromFile(_pd3dDevice, L"Crate_COLOR.dds", nullptr, &_pTextureRV);
+    CreateDDSTextureFromFile(_pd3dDevice, L"Textures/Crate_COLOR.dds", nullptr, &_pTextureRV);
     // Select texture to use in pixel shader
     _pImmediateContext->PSSetShaderResources(0, 1, &_pTextureRV);
 
@@ -1233,6 +1234,27 @@ void Application::Draw()
     _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
     _pImmediateContext->DrawIndexed(_pQuadGen->_indexCount, 0, 0);
+
+    //
+    // Draw Loaded Objects
+    //
+    // object A
+    cbl.mWorld = XMMatrixTranspose(
+        XMMatrixMultiply(world, XMMatrixTranslation(3.0f,0.0f,0.0f))
+    );
+    _pImmediateContext->IASetVertexBuffers(0, 1, &objMeshDataA.VertexBuffer, &objMeshDataA.VBStride, &objMeshDataA.VBOffset);
+    _pImmediateContext->IASetIndexBuffer(objMeshDataA.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
+    _pImmediateContext->DrawIndexed(objMeshDataA.IndexCount, 0, 0);
+
+    // object b
+    cbl.mWorld = XMMatrixTranspose(
+        XMMatrixMultiply(world, XMMatrixTranslation(-3.0f, 0.0f, 0.0f))
+    );
+    _pImmediateContext->IASetVertexBuffers(0, 1, &objMeshDataB.VertexBuffer, &objMeshDataB.VBStride, &objMeshDataB.VBOffset);
+    _pImmediateContext->IASetIndexBuffer(objMeshDataB.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
+    _pImmediateContext->DrawIndexed(objMeshDataB.IndexCount, 0, 0);
 
     //
     // Present our back buffer to our front buffer

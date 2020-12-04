@@ -4,7 +4,7 @@
 class PlaneGenerator {
 public:
 	Vertex _plane;
-	MeshData _meshData;
+	MeshArray _meshData;
 
 	unsigned int _faceCount;
 	unsigned int _vertexCount, _indexCount;
@@ -18,8 +18,8 @@ public:
 
 	void CreateGrid(float width, float depth, 
 		unsigned int row, unsigned int col, 
-		MeshData& meshData);
-	void CreateIndices(MeshData& meshData);
+		MeshArray& meshData);
+	void CreateIndices(MeshArray& meshData);
 
 	static void CalcNormals(
 		std::vector<Vertex> verts,
