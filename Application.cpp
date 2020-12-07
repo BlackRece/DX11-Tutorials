@@ -1086,9 +1086,11 @@ void Application::Update()
     // camera movement
     if (GetKeyState('W') & 0x8000) {
         _cam[_camSelected].MoveForward(-t);
+        _cam[_camSelected].SetView();
     }
     if (GetKeyState('S') & 0x8000) {
         _cam[_camSelected].MoveForward(t);
+        _cam[_camSelected].SetView();
     }
     if (GetKeyState('A') & 0x8000) {
         _cam[_camSelected].MoveSidewards(-t);

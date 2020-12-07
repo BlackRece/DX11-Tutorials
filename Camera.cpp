@@ -1,6 +1,9 @@
 #include "Camera.h"
 
-Camera::Camera() {}
+Camera::Camera() {
+    _points.clear();
+    _pointIndex = 0;
+}
 Camera::Camera(Vector3D position, Vector3D at, Vector3D up,
     float windowWidth, float windowHeight,
     float nearDepth, float farDepth,
@@ -27,6 +30,10 @@ Camera::Camera(XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up,
 }
 
 Camera::~Camera() {}
+
+void Camera::AddWayPoint(WayPoint newPoint) {
+    _points.push_back(newPoint);
+}
 
 Vector3D Camera::GetLookAt() {
     return _at;
@@ -56,20 +63,20 @@ XMMATRIX Camera::GetViewProj() {
     return XMMatrixMultiply(GetView(), GetProjection());
 }
 
+Camera::WayPoint Camera::GetWayPoint(int index) {
+    return _points[index];
+}
+
 void Camera::MoveForward(float forward) {
+    float step = forward * _translateSpeed;
     if (!_useLookTo) {
-        if (forward < 0) {
-            if (_eye.z > _at.z && _eye.z-(forward * _translateSpeed) >= _at.z) {
-                _eye.z -= forward * _translateSpeed;
-            }
-        } else if (forward > 0) {
-            if (_eye.z < _at.z && _eye.z+(forward * _translateSpeed) <= _at.z) {
-                _eye.z += forward * _translateSpeed;
-            }
-        }
+        _eye.z += step;
+        SetView();
+        
     } else {
         Translate(_to * (forward * _translateSpeed));
     }
+    
 }
 
 void Camera::MoveSidewards(float sideward) {
@@ -154,14 +161,11 @@ void Camera::SetUp(Vector3D up) {
 }
 
 void Camera::Translate(float xAxis, float yAxis, float zAxis) {
-    Translate(Vector3D(xAxis, yAxis, zAxis));
+    SetView(XMMatrixMultiply(GetView(), XMMatrixTranslation(xAxis, yAxis, zAxis)));
 }
 
-void Camera::Translate(Vector3D position) {
-    Vector3D diff = _eye - position;
-    _eye += diff;
-    _at += diff;
-
+void Camera::Translate(Vector3D pos) {
+    Translate(pos.x, pos.y, pos.z);
 }
 
 void Camera::Update() {

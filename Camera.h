@@ -1,10 +1,17 @@
 #pragma once
+#include <vector>
 #include <directxmath.h>
 #include "Vector3D.h"
 
 using namespace DirectX;
 
 class Camera {
+public:
+	struct WayPoint {
+		Vector3D eye;
+		Vector3D to;
+		Vector3D up;
+	};
 private:
 	// Private attributes to store the camera position and view 
 	// volume
@@ -13,6 +20,9 @@ private:
 	Vector3D _at;
 	Vector3D _to;
 	Vector3D _up;
+
+	std::vector<WayPoint> _points;
+	int _pointIndex;
 
 	bool _useLookTo;
 
@@ -39,12 +49,15 @@ public:
 		Vector3D position, Vector3D at, Vector3D up,
 		float windowWidth, float windowHeight,
 		float nearDepth, float farDepth,
-		float rotateSpeed = 0.01f, float translateSpeed = 0.1f);
+		float rotateSpeed = 0.001f, float translateSpeed = 0.001f);
 	Camera(
 		XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up, 
 		float windowWidth, float windowHeight, 
 		float nearDepth, float farDepth);
 	~Camera();
+
+	void AddWayPoint(WayPoint newPoint);
+	WayPoint GetWayPoint(int index);
 
 	// you will need a set of functions to set and return the 
 	// position, lookat and up attributes
@@ -87,7 +100,7 @@ public:
 	void SetUp(Vector3D up);
 
 	void Translate(float xAxis, float yAxis, float zAxis);
-	void Translate(Vector3D position);
+	void Translate(Vector3D pos);
 
 	// update function to make the current view and projection 
 	// matrices
