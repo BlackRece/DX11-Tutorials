@@ -94,7 +94,9 @@ Application::Application()
     _pLight.SpecularPower = 10.0f;
 
     //camera
-    _cam = Camera();
+    _camNum = 5;
+    _cam = new Camera[_camNum];
+    _camSelected = 0;
 
     //setup random engine for cubes
     std::mt19937 rnd(randDevice());
@@ -138,8 +140,48 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
     _cam.Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);      //cam up
     */
     // use new camera class
-    _cam = Camera(
+    //default cam
+    _cam[0] = Camera(
         Vector3D(0.0f, 0.0f, -10.0f),
+        Vector3D(0.0f, 0.0f, 0.0f),
+        Vector3D(0.0f, 1.0f, 0.0f),
+        (float)_WindowWidth, (float)_WindowHeight,
+        0.01f, 100.0f
+    );
+
+    //top cam
+    _cam[1] = Camera(
+        Vector3D(0.0f, -10.0f, 0.0f),
+        Vector3D(0.0f, 0.0f, 0.0f),
+        Vector3D(0.0f, 0.0f, 1.0f),
+        (float)_WindowWidth, (float)_WindowHeight,
+        0.01f, 100.0f
+    );
+
+    //right cam
+    _cam[2] = Camera(
+        Vector3D(-10.0f, 0.0f, 0.0f),
+        Vector3D(0.0f, 0.0f, 0.0f),
+        Vector3D(0.0f, 1.0f, 0.0f),
+        (float)_WindowWidth, (float)_WindowHeight,
+        0.01f, 100.0f
+    );
+
+    //far cam
+    _cam[3] = Camera(
+        Vector3D(0.0f, 0.0f, -20.0f),
+        Vector3D(0.0f, 0.0f, 0.0f),
+        Vector3D(0.0f, 1.0f, 0.0f),
+        (float)_WindowWidth, (float)_WindowHeight,
+        0.01f, 100.0f
+    );
+    _cam[3].SetLookTo(Vector3D(0.0f, 0.0f, 1.0f));
+    _cam[3].UseLookTo(true);
+    _cam[3].SetView();
+
+    //chase cam
+    _cam[4] = Camera(
+        Vector3D(0.0f, 0.0f, -20.0f),
         Vector3D(0.0f, 0.0f, 0.0f),
         Vector3D(0.0f, 1.0f, 0.0f),
         (float)_WindowWidth, (float)_WindowHeight,
@@ -1020,8 +1062,44 @@ void Application::Update()
         _enableWireFrame = (_enableWireFrame) ? false : true;
     }
 
-    // Update our camera
-    _cam.Update();
+    // camera switching
+    if (GetKeyState('1') & 0x8000) {
+        _camSelected = 0;
+    }
+    
+    if (GetKeyState('2') & 0x8000) {
+        _camSelected = 1;
+    }
+
+    if (GetKeyState('3') & 0x8000) {
+        _camSelected = 2;
+    }
+
+    if (GetKeyState('4') & 0x8000) {
+        _camSelected = 3;
+    }
+
+    if (GetKeyState('5') & 0x8000) {
+        _camSelected = 4;
+    }
+
+    // camera movement
+    if (GetKeyState('W') & 0x8000) {
+        _cam[_camSelected].MoveForward(-t);
+    }
+    if (GetKeyState('S') & 0x8000) {
+        _cam[_camSelected].MoveForward(t);
+    }
+    if (GetKeyState('A') & 0x8000) {
+        _cam[_camSelected].MoveSidewards(-t);
+    }
+    if (GetKeyState('D') & 0x8000) {
+        _cam[_camSelected].MoveSidewards(t);
+    }
+
+    if (GetKeyState(' ') & 0x8000) {
+        _cam[_camSelected].SetView();
+    }
 
     //
     // Animate the pyramid
@@ -1114,6 +1192,12 @@ void Application::Update()
             )
         )
     );
+
+    // Update our cameras
+    if (_camSelected == 4) {
+        _cam[_camSelected].SetView(_cubes[1]);
+    }
+    _cam[_camSelected].Update();
 }
 
 /// <summary>
@@ -1147,7 +1231,7 @@ void Application::Draw()
     cbl.mWorld = XMMatrixTranspose(world);
     // use our camera class
     //cbl.mViewProj = XMMatrixTranspose(XMMatrixMultiply(view, projection));
-    cbl.mViewProj = XMMatrixTranspose(_cam.GetViewProj());
+    cbl.mViewProj = XMMatrixTranspose(_cam[_camSelected].GetViewProj());
     
     //lighting
     //ambient
@@ -1163,7 +1247,7 @@ void Application::Draw()
     cbl.SpecularPower = _pLight.SpecularPower;
     // use camera class
     //cbl.EyePosW = _cam.EyeToFloat3();
-    Vector3D cam = _cam.GetPos();
+    Vector3D cam = _cam[_camSelected].GetPos();
     cbl.EyePosW = XMFLOAT3{ cam.x, cam.y, cam.z };
 
     //update directX with cb lite

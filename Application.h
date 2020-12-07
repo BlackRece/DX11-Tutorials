@@ -35,7 +35,9 @@ private:
 	XMFLOAT4X4					_view;
 	XMFLOAT4X4					_projection;
 
-	Camera						_cam;		//TODO: allow for an array of cameras
+	Camera*						_cam;				// array of cameras
+	int							_camNum;			// number of cameras
+	int							_camSelected;		// index of selected camera
 
 	XMFLOAT4X4*					_cubes;
 	UINT						_cubeNum;

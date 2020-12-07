@@ -4,14 +4,12 @@ Camera::Camera() {}
 Camera::Camera(Vector3D position, Vector3D at, Vector3D up,
     float windowWidth, float windowHeight,
     float nearDepth, float farDepth,
-    float rotateSpeed, float translateSpeed) :
+    float rotateSpeed, float translateSpeed) : _useLookTo(false), 
     _rotateSpeed(rotateSpeed), _translateSpeed(translateSpeed) {
 
     SetPos(position);
     SetLookAt(at);
     SetUp(up);
-    
-    SetView();
     
     Reshape(windowWidth, windowHeight, nearDepth, farDepth);
 }
@@ -34,6 +32,10 @@ Vector3D Camera::GetLookAt() {
     return _at;
 }
 
+Vector3D Camera::GetLookTo() {
+    return _to;
+}
+
 Vector3D Camera::GetPos() {
     return _eye;
 }
@@ -54,6 +56,30 @@ XMMATRIX Camera::GetViewProj() {
     return XMMatrixMultiply(GetView(), GetProjection());
 }
 
+void Camera::MoveForward(float forward) {
+    if (!_useLookTo) {
+        if (forward < 0) {
+            if (_eye.z > _at.z && _eye.z-(forward * _translateSpeed) >= _at.z) {
+                _eye.z -= forward * _translateSpeed;
+            }
+        } else if (forward > 0) {
+            if (_eye.z < _at.z && _eye.z+(forward * _translateSpeed) <= _at.z) {
+                _eye.z += forward * _translateSpeed;
+            }
+        }
+    } else {
+        Translate(_to * (forward * _translateSpeed));
+    }
+}
+
+void Camera::MoveSidewards(float sideward) {
+    if (!_useLookTo) {
+        RotateY(sideward * _rotateSpeed);
+    } else {
+        Translate(sideward * _rotateSpeed, 0.0f, 0.0f);
+    }
+}
+
 void Camera::Reshape(
     float windowWidth, float windowHeight,
     float nearDepth, float farDepth) {
@@ -64,27 +90,36 @@ void Camera::Reshape(
     _nearDepth = nearDepth;
     _farDepth = farDepth;
 
+    SetView();
+
     SetProjection(XM_PIDIV2, _windowWidth / _windowHeight, _nearDepth, _farDepth);
 }
 
-/*
-void Rotate(float xAxis, float yAxis, float zAxis) {
+void Camera::Rotate(float xAxis, float yAxis, float zAxis) {
     Rotate(Vector3D(xAxis, yAxis, zAxis));
 }
-void Rotate(Vector3D angles) {
+void Camera::Rotate(Vector3D angles) {
     RotateX(angles.x);
     RotateY(angles.y);
     RotateZ(angles.z);
 }
-void RotateX(float xAxis) {
-    //rotate eye and at in opposite dorections
+
+void Camera::RotateX(float xAxis) {
+    SetView(XMMatrixMultiply(GetView(), XMMatrixRotationX(xAxis)));
 }
-void RotateY(float yAxis);
-void RotateZ(float zAxis);
-*/
+void Camera::RotateY(float yAxis) {
+    SetView(XMMatrixMultiply(GetView(), XMMatrixRotationY(yAxis)));
+}
+void Camera::RotateZ(float zAxis) {
+    SetView(XMMatrixMultiply(GetView(), XMMatrixRotationZ(zAxis)));
+}
 
 void Camera::SetLookAt(Vector3D at) {
     _at = at;
+}
+
+void Camera::SetLookTo(Vector3D to) {
+    _to = to;
 }
 
 void Camera::SetPos(Vector3D pos) {
@@ -98,9 +133,20 @@ void Camera::SetProjection(float fovAngle, float ratio, float nearDepth, float f
 void Camera::SetView() {
     XMVECTOR eye = XMVectorSet(_eye.x, _eye.y, _eye.z, 0.0f);
     XMVECTOR at = XMVectorSet(_at.x, _at.y, _at.z, 0.0f);
+    XMVECTOR to = XMVectorSet(_to.x, _to.y, _to.z, 0.0f);
     XMVECTOR up = XMVectorSet(_up.x, _up.y, _up.z, 0.0f);
 
-    XMStoreFloat4x4(&_view, XMMatrixLookAtLH(eye, at, up));
+    if (!_useLookTo)
+        SetView(XMMatrixLookAtLH(eye, at, up));
+    else
+        SetView(XMMatrixLookToLH(eye, to, up));
+}
+void Camera::SetView(XMFLOAT4X4 view) {
+    _view = view;
+}
+
+void Camera::SetView(XMMATRIX view) {
+    XMStoreFloat4x4(&_view, view);
 }
 
 void Camera::SetUp(Vector3D up) {
@@ -119,6 +165,9 @@ void Camera::Translate(Vector3D position) {
 }
 
 void Camera::Update() {
-    SetView();
-    Reshape(_windowWidth, _windowHeight, _nearDepth, _farDepth);
+    
+}
+
+void Camera::UseLookTo(bool state) {
+    _useLookTo = state;
 }

@@ -11,7 +11,10 @@ private:
 
 	Vector3D _eye;
 	Vector3D _at;
+	Vector3D _to;
 	Vector3D _up;
+
+	bool _useLookTo;
 
 	float _farDepth;
 	float _nearDepth;
@@ -36,7 +39,7 @@ public:
 		Vector3D position, Vector3D at, Vector3D up,
 		float windowWidth, float windowHeight,
 		float nearDepth, float farDepth,
-		float rotateSpeed = 1.0f, float translateSpeed = 1.0f);
+		float rotateSpeed = 0.01f, float translateSpeed = 0.1f);
 	Camera(
 		XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up, 
 		float windowWidth, float windowHeight, 
@@ -48,19 +51,21 @@ public:
 	// You will need functions to get the View, Projection and 
 	// combined ViewProjection matrices
 	Vector3D GetLookAt();
+	Vector3D GetLookTo();
 	Vector3D GetPos();
 	XMMATRIX GetProjection();
 	Vector3D GetUp();
 	XMMATRIX GetView();
 	XMMATRIX GetViewProj();
 
-	/*
+	void MoveForward(float forward);
+	void MoveSidewards(float sideward);
+
 	void Rotate(float xAxis, float yAxis, float zAxis);
 	void Rotate(Vector3D angles);
 	void RotateX(float xAxis);
 	void RotateY(float yAxis);
 	void RotateZ(float zAxis);
-	*/
 
 	// A function to reshape the camera volume if the window is 
 	// resized.
@@ -70,12 +75,15 @@ public:
 	);
 
 	void SetLookAt(Vector3D at);
+	void SetLookTo(Vector3D to);
 	void SetPos(Vector3D pos);
 	void SetProjection(
 		float fovAngle, float ratio, 
 		float nearDepth, float farDepth
 	); 
 	void SetView();
+	void SetView(XMFLOAT4X4 view);
+	void SetView(XMMATRIX view);
 	void SetUp(Vector3D up);
 
 	void Translate(float xAxis, float yAxis, float zAxis);
@@ -84,6 +92,7 @@ public:
 	// update function to make the current view and projection 
 	// matrices
 	void Update();
+	void UseLookTo(bool state);
 };
 
 
