@@ -18,6 +18,7 @@
     <ClInclude Include="Lighting.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="OBJLoader.h" />
+    <ClInclude Include="Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -27,6 +28,7 @@
     <ClCompile Include="Lighting.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
+    <ClCompile Include="Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">

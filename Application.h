@@ -11,6 +11,7 @@
 #include "Structures.h"
 #include "Lighting.h"
 #include "OBJLoader.h"
+#include "Camera.h"
 
 using namespace DirectX;
 

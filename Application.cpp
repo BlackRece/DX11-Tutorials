@@ -132,16 +132,26 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 	XMStoreFloat4x4(&_world, XMMatrixIdentity());
 
     // Initialize the view matrix
+    /*
     _cam.Eye = XMVectorSet(0.0f, 0.0f, -10.0f, 0.0f);    //cam pos
     _cam.At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);      //cam dir
     _cam.Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);      //cam up
+    */
+    // use new camera class
+    _cam = Camera(
+        Vector3D(0.0f, 0.0f, -10.0f),
+        Vector3D(0.0f, 0.0f, 0.0f),
+        Vector3D(0.0f, 1.0f, 0.0f),
+        (float)_WindowWidth, (float)_WindowHeight,
+        0.01f, 100.0f
+    );
 
-    XMStoreFloat4x4(&_view, XMMatrixLookAtLH(_cam.Eye, _cam.At, _cam.Up));
+    // done automatically in Camera class
+    //XMStoreFloat4x4(&_view, XMMatrixLookAtLH(_cam.Eye, _cam.At, _cam.Up));
 
     // Initialize the projection matrix
-	XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(XM_PIDIV2, _WindowWidth / (FLOAT) _WindowHeight, 0.01f, 100.0f));
-
-    
+    // done automatically in Camera class
+	//XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(XM_PIDIV2, _WindowWidth / (FLOAT) _WindowHeight, 0.01f, 100.0f));
 
 	return S_OK;
 }
@@ -1010,6 +1020,9 @@ void Application::Update()
         _enableWireFrame = (_enableWireFrame) ? false : true;
     }
 
+    // Update our camera
+    _cam.Update();
+
     //
     // Animate the pyramid
     //
@@ -1121,8 +1134,10 @@ void Application::Draw()
     // Update variables
     //
     XMMATRIX world = XMLoadFloat4x4(&_world);
-    XMMATRIX view = XMLoadFloat4x4(&_view);
-    XMMATRIX projection = XMLoadFloat4x4(&_projection);
+
+    // use our camera clase
+    //XMMATRIX view = XMLoadFloat4x4(&_view);
+    //XMMATRIX projection = XMLoadFloat4x4(&_projection);
 
     //use efficient constant buffer
     //by pre multiplying values on cpu
@@ -1130,7 +1145,9 @@ void Application::Draw()
 
     //matrices
     cbl.mWorld = XMMatrixTranspose(world);
-    cbl.mViewProj = XMMatrixTranspose(XMMatrixMultiply(view, projection));
+    // use our camera class
+    //cbl.mViewProj = XMMatrixTranspose(XMMatrixMultiply(view, projection));
+    cbl.mViewProj = XMMatrixTranspose(_cam.GetViewProj());
     
     //lighting
     //ambient
@@ -1144,7 +1161,10 @@ void Application::Draw()
     //specular
     cbl.mSpecular = XMFLoat4Multiply(_pLight.SpecularMaterial, _pLight.SpecularLight);
     cbl.SpecularPower = _pLight.SpecularPower;
-    cbl.EyePosW = _cam.EyeToFloat3();
+    // use camera class
+    //cbl.EyePosW = _cam.EyeToFloat3();
+    Vector3D cam = _cam.GetPos();
+    cbl.EyePosW = XMFLOAT3{ cam.x, cam.y, cam.z };
 
     //update directX with cb lite
 	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);

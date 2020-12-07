@@ -50,6 +50,7 @@ struct ConstantBufferLite {
 };
 
 // TODO: change to class
+/*
 struct Camera {
 	XMVECTOR Eye;		//cam pos
 	XMVECTOR At;		//cam dir
@@ -59,6 +60,7 @@ struct Camera {
 		return XMFLOAT3{ Eye.m128_f32[0], Eye.m128_f32[1], Eye.m128_f32[2] };
 	}
 };
+*/
 
 struct VertexNormals {
 	XMFLOAT3 Pos;
