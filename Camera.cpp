@@ -74,7 +74,9 @@ void Camera::MoveForward(float forward) {
         SetView();
         
     } else {
-        Translate(_to * (forward * _translateSpeed));
+        _eye += _to * step;
+
+        Translate(_to * step);
     }
     
 }
