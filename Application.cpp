@@ -94,7 +94,7 @@ Application::Application()
     _pLight.SpecularPower = 10.0f;
 
     //camera
-    _camNum = 5;
+    _camNum = 6;
     _cam = new Camera[_camNum];
     _camSelected = 0;
 
@@ -148,6 +148,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         (float)_WindowWidth, (float)_WindowHeight,
         0.01f, 100.0f
     );
+    _cam[0].UseWayPoints(false);
 
     //top cam
     _cam[1] = Camera(
@@ -157,6 +158,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         (float)_WindowWidth, (float)_WindowHeight,
         0.01f, 100.0f
     );
+    _cam[1].UseWayPoints(false);
 
     //right cam
     _cam[2] = Camera(
@@ -166,6 +168,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         (float)_WindowWidth, (float)_WindowHeight,
         0.01f, 100.0f
     );
+    _cam[2].UseWayPoints(false);
 
     //far cam
     _cam[3] = Camera(
@@ -178,6 +181,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
     _cam[3].SetLookTo(Vector3D(0.0f, 0.0f, 1.0f));
     _cam[3].UseLookTo(true);
     _cam[3].SetView();
+    _cam[3].UseWayPoints(false);
 
     //chase cam
     _cam[4] = Camera(
@@ -187,6 +191,22 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         (float)_WindowWidth, (float)_WindowHeight,
         0.01f, 100.0f
     );
+    _cam[4].UseWayPoints(false);
+
+    //waypoint cam
+    _cam[5] = Camera(
+        Vector3D(0.0f, 0.0f, -10.0f),
+        Vector3D(0.0f, 0.0f, 0.0f),
+        Vector3D(0.0f, 1.0f, 0.0f),
+        (float)_WindowWidth, (float)_WindowHeight,
+        0.01f, 100.0f
+    );
+    _cam[5].UseWayPoints(true);
+    //set waypoints
+    _cam[5].AddWayPoint(Vector3D(0.0f, 0.0f, 10.0f));
+    _cam[5].AddWayPoint(Vector3D(-10.0f, 0.0f, 0.0f));
+    _cam[5].AddWayPoint(Vector3D(0.0f, 0.0f, -10.0f));
+    _cam[5].AddWayPoint(Vector3D(10.0f, 0.0f, 0.0f));
 
     // done automatically in Camera class
     //XMStoreFloat4x4(&_view, XMMatrixLookAtLH(_cam.Eye, _cam.At, _cam.Up));
@@ -1081,6 +1101,10 @@ void Application::Update()
 
     if (GetKeyState('5') & 0x8000) {
         _camSelected = 4;
+    }
+
+    if (GetKeyState('6') & 0x8000) {
+        _camSelected = 5;
     }
 
     // camera movement

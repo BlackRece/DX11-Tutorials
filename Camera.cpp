@@ -3,7 +3,9 @@
 Camera::Camera() {
     _points.clear();
     _pointIndex = 0;
+    _isUsingWayPoints = false;
 }
+
 Camera::Camera(Vector3D position, Vector3D at, Vector3D up,
     float windowWidth, float windowHeight,
     float nearDepth, float farDepth,
@@ -30,6 +32,12 @@ Camera::Camera(XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up,
 }
 
 Camera::~Camera() {}
+
+void Camera::AddWayPoint(Vector3D newPoint) {
+    WayPoint point = WayPoint();
+    point.eye = newPoint;
+    AddWayPoint(point);
+}
 
 void Camera::AddWayPoint(WayPoint newPoint) {
     _points.push_back(newPoint);
@@ -87,6 +95,15 @@ void Camera::MoveSidewards(float sideward) {
     } else {
         Translate(sideward * _rotateSpeed, 0.0f, 0.0f);
     }
+}
+
+void Camera::MoveTo(Vector3D point, float speed) {
+    //float dist = _eye.distance(point);
+
+    Vector3D diff = Vector3D(_eye - point).normalization();
+    _eye -= diff * (speed * 10);
+    //Translate(_eye + (diff * speed));
+    SetView();
 }
 
 void Camera::Reshape(
@@ -171,9 +188,30 @@ void Camera::Translate(Vector3D pos) {
 }
 
 void Camera::Update() {
-    
+    if (_isUsingWayPoints) {
+        if (_points.size() < 1) 
+            // list of waypoints is empty!!
+            return;
+
+        //Vector3D dist = 
+        if (_eye.distance(_points[_pointIndex].eye) > 0.01f) {
+            // waypoint not reached
+            MoveTo(_points[_pointIndex].eye, _translateSpeed);
+
+        } else {
+            // close enough to waypoint
+            _eye = _points[_pointIndex].eye;
+            if (_pointIndex++ >= _points.size() - 1)
+                _pointIndex = 0;
+        }
+    }
 }
 
 void Camera::UseLookTo(bool state) {
     _useLookTo = state;
+}
+
+void Camera::UseWayPoints(bool state) {
+    _isUsingWayPoints = state;
+    if (state) _pointIndex = 0;
 }

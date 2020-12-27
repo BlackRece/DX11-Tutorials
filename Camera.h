@@ -23,6 +23,7 @@ private:
 
 	std::vector<WayPoint> _points;
 	int _pointIndex;
+	bool _isUsingWayPoints;
 
 	bool _useLookTo;
 
@@ -57,6 +58,7 @@ public:
 	~Camera();
 
 	void AddWayPoint(WayPoint newPoint);
+	void AddWayPoint(Vector3D newPoint);
 	WayPoint GetWayPoint(int index);
 
 	// you will need a set of functions to set and return the 
@@ -73,6 +75,7 @@ public:
 
 	void MoveForward(float forward);
 	void MoveSidewards(float sideward);
+	void MoveTo(Vector3D point, float speed);
 
 	void Rotate(float xAxis, float yAxis, float zAxis);
 	void Rotate(Vector3D angles);
@@ -106,6 +109,7 @@ public:
 	// matrices
 	void Update();
 	void UseLookTo(bool state);
+	void UseWayPoints(bool state);
 };
 
 
