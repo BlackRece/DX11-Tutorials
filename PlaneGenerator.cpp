@@ -25,6 +25,7 @@ void PlaneGenerator::CreateGrid(float width, float depth,
 		float z = halfDepth - i * dz;
 		for (unsigned int j = 0; j < col; ++j) {
 			float x = -halfWidth + j * dx;
+			//meshData.Vertices[i * col + j].Position = Vector3D(x, z, 0.0f);
 			meshData.Vertices[i * col + j].Position = Vector3D(x, 0.0f, z);
 
 			//used for lighting.
@@ -36,9 +37,46 @@ void PlaneGenerator::CreateGrid(float width, float depth,
 			meshData.Vertices[i * col + j].TexC.y = i * dv;
 		}
 	}
+}
 
-	// DEBUG
-	std::cout << "Vertex count: " << _vertexCount << std::endl;
+void PlaneGenerator::CreateVerticalGrid(float width, float height, float depth,
+	unsigned int row, unsigned int col, MeshArray& meshData) {
+
+	_row = row;
+	_col = col;
+
+	_vertexCount = row * col;
+	_faceCount = (row - 1) * (col - 1) * 2;
+
+	//
+	// Create the vertices.
+	//
+	float halfWidth = 0.5f * width;
+	float halfheight = 0.5f * height;
+	//float halfDepth = 0.5f * depth;
+	float dx = width / (col - 1);
+	float dy = height / (row - 1);
+	//float dz = depth;
+	float du = 1.0f / (col - 1);
+	float dv = 1.0f / (row - 1);
+
+	meshData.Vertices.resize(_vertexCount);
+
+	for (unsigned int i = 0; i < row; ++i) {
+		float y = halfheight - i * dy;
+		for (unsigned int j = 0; j < col; ++j) {
+			float x = -halfWidth + j * dx;
+			meshData.Vertices[i * col + j].Position = Vector3D(x, y, 0.0f);
+
+			//used for lighting.
+			meshData.Vertices[i * col + j].Normal = Vector3D(0.0f, 1.0f, 0.0f);
+			meshData.Vertices[i * col + j].TangentU = Vector3D(1.0f, 0.0f, 0.0f);
+
+			//used for texturing.
+			meshData.Vertices[i * col + j].TexC.x = j * du;
+			meshData.Vertices[i * col + j].TexC.y = i * dv;
+		}
+	}
 }
 
 void PlaneGenerator::CreateIndices(MeshArray& meshData) {
@@ -67,15 +105,6 @@ void PlaneGenerator::CreateIndices(MeshArray& meshData) {
 			meshData.Indices[k + 4] = TR;
 			meshData.Indices[k + 5] = BR;
 
-			/*
-			meshData.Indices[k + 0] = i * _col + j;					// tl
-			meshData.Indices[k + 1] = i * _col + j + 1;				// tr
-			meshData.Indices[k + 2] = (i + 1) * _col + j;			// bl
-
-			meshData.Indices[k + 3] = (i + 1) * _col + j;			// bl
-			meshData.Indices[k + 4] = i * _col + j + 1;				// tr
-			meshData.Indices[k + 5] = (i + 1) * _col + j + 1;		// br
-			*/
 			k += 6; // next quad
 		}
 	}

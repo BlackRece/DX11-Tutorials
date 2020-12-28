@@ -19,6 +19,9 @@ public:
 	void CreateGrid(float width, float depth, 
 		unsigned int row, unsigned int col, 
 		MeshArray& meshData);
+	void CreateVerticalGrid(float width, float height, float depth,
+		unsigned int row, unsigned int col,
+		MeshArray& meshData);
 	void CreateIndices(MeshArray& meshData);
 
 	static void CalcNormals(

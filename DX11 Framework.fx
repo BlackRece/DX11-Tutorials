@@ -141,6 +141,9 @@ VS_OUTPUT VS(VS_INPUT input)
 float4 PS(VS_OUTPUT input) : SV_Target{
     float4 textureColour = txDiffuse.Sample(samLinear, input.Tex);
 
+    // alpha clipping
+    clip(textureColour.a - 0.25f);
+
     //return input.Color;
     return input.Color + textureColour;
 }

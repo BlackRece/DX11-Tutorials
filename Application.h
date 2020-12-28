@@ -67,7 +67,7 @@ private:
 	UINT						_pCubeVC;			//VertexCount;
 	UINT						_pCubeIC;			//IndexCount;
 
-	//plain
+	//plane
 	PlaneGenerator*				_pQuadGen;
 	XMFLOAT4X4					_pPlane;
 	ID3D11Buffer*				_pQuadVB;			//VertexBuffer;
@@ -75,17 +75,23 @@ private:
 	XMFLOAT2					_pQuadDims;			//vertex counts of quad
 	XMFLOAT2					_pQuadArea;			//size of plane
 
-	UINT						_pQuadVC;			//VertexCount;
-	UINT						_pQuadIC;			//IndexCount;
-
+	//pine tree plane
+	PlaneGenerator*				_pPineGen;
+	XMFLOAT4X4					_pPine;
+	ID3D11Buffer*				_pPineVB;			//VertexBuffer;
+	ID3D11Buffer*				_pPineIB;			//IndexBuffer;
+	XMFLOAT2					_pPineDims;			//vertex counts of quad
+	XMFLOAT2					_pPineArea;			//size of plane
+	
 	float						_gTime;
 
 	//lighting
 	Lighting					_pLight;
 
 	//texturing
-	ID3D11ShaderResourceView*	_pTextureRV;		//Texture
-	ID3D11ShaderResourceView*	_pContainerRV;		//Texture
+	ID3D11ShaderResourceView*	_pTextureRV;		//Crate Texture
+	ID3D11ShaderResourceView*	_pContainerRV;		//Cosmo Texture
+	ID3D11ShaderResourceView*	_pPineRV;			//Pine Tree Texture
 	ID3D11SamplerState*			_pSamplerLinear;	//Sampler
 
 	//OBJ loader
@@ -110,6 +116,7 @@ private:
 	HRESULT InitIndexBuffer();
 
 	HRESULT InitPlane();
+	HRESULT InitVerticalPlane();
 	HRESULT InitCubeNormals();
 	HRESULT InitPyramidNormals();
 

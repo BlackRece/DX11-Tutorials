@@ -1,0 +1,23 @@
+# Blender MTL File: 'None'
+# Material Count: 2
+
+newmtl Material_#4837890
+Ns 179.999996
+Ka 1.000000 1.000000 1.000000
+Kd 0.090196 0.090196 0.090196
+Ks 2.000000 2.000000 2.000000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl cosmo-optic
+Ns 179.999996
+Ka 1.000000 1.000000 1.000000
+Kd 0.043137 0.058824 0.000000
+Ks 2.000000 2.000000 2.000000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 0.039216
+illum 9
+map_Bump -bm 0.350042 D:\\Documents\\GitHub\\DX11 Tutorials\\Work\\Дом Цой\\tex\\1692721235367.jpg
