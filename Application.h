@@ -50,6 +50,9 @@ private:
 	ID3D11RasterizerState*		_wireFrame;
 	bool						_enableWireFrame;
 
+	ID3D11RasterizerState*		_noCulling;
+	bool						_enableCulling;
+
 	//pyramid
 	MeshArray					_pPyramidMesh;
 	ID3D11Buffer*				_pPyramidVB;		//VertexBuffer;
@@ -82,15 +85,20 @@ private:
 
 	//texturing
 	ID3D11ShaderResourceView*	_pTextureRV;		//Texture
+	ID3D11ShaderResourceView*	_pContainerRV;		//Texture
 	ID3D11SamplerState*			_pSamplerLinear;	//Sampler
 
 	//OBJ loader
 	MeshData					objMeshDataA;
 	MeshData					objMeshDataB;
+	MeshData					objContainerMesh;
 
 	//randomiser util
 	std::random_device			randDevice;	
 	std::normal_distribution<float> nd;
+
+	//transparency
+	ID3D11BlendState*			_Transparency;
 
 private:
 	HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);

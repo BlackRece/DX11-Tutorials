@@ -57,6 +57,9 @@ Application::Application()
     _wireFrame = nullptr;
     _enableWireFrame = false;
 
+    _noCulling = nullptr;
+    _enableCulling = false;
+
     //pyramid
     _pPyramidMesh = MeshArray();
     _pPyramidVB = nullptr;		//VertexBuffer;
@@ -103,6 +106,7 @@ Application::Application()
 
     //texturing
     _pTextureRV = nullptr;
+    _pContainerRV = nullptr;
     _pSamplerLinear = nullptr;
 }
 
@@ -966,6 +970,9 @@ HRESULT Application::InitDevice()
 
     //Blender
     objMeshDataB = OBJLoader::Load("Models/Blender/donut.obj", _pd3dDevice, false);
+
+    //Cosmo??
+    objContainerMesh = OBJLoader::Load("Models/Cosmo/OpticContainer.FBX", _pd3dDevice);
     
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -992,15 +999,28 @@ HRESULT Application::InitDevice()
     if (FAILED(hr))
         return hr;
 
+    // Create no backface culling render state
+    D3D11_RASTERIZER_DESC bfcdesc;
+    ZeroMemory(&bfcdesc, sizeof(D3D11_RASTERIZER_DESC));
+    bfcdesc.FillMode = D3D11_FILL_SOLID;
+    bfcdesc.CullMode = D3D11_CULL_NONE;
+    hr = _pd3dDevice->CreateRasterizerState(&bfcdesc, &_noCulling);
+
+    if (FAILED(hr))
+        return hr;
+
     //
     // Texturing and Sampling
-    ///
+    //
 
-    // Load texture from file
+    // Load crate texture from file
     CreateDDSTextureFromFile(_pd3dDevice, L"Textures/Crate_COLOR.dds", nullptr, &_pTextureRV);
+    // Load cosmo texture from file
+    CreateDDSTextureFromFile(_pd3dDevice, L"Textures/Crate_COLOR.dds", nullptr, &_pContainerRV);
+    
     // Select texture to use in pixel shader
     _pImmediateContext->PSSetShaderResources(0, 1, &_pTextureRV);
-
+    
     // Create the sample state
     D3D11_SAMPLER_DESC sampDesc;
     ZeroMemory(&sampDesc, sizeof(sampDesc));
@@ -1015,6 +1035,30 @@ HRESULT Application::InitDevice()
     hr = _pd3dDevice->CreateSamplerState(&sampDesc, &_pSamplerLinear);
 
     _pImmediateContext->PSSetSamplers(0, 1, &_pSamplerLinear);
+
+    if (FAILED(hr))
+        return hr;
+
+    // Transparency Blending Equation
+    D3D11_BLEND_DESC blendDesc;
+    ZeroMemory(&blendDesc, sizeof(blendDesc));
+
+    D3D11_RENDER_TARGET_BLEND_DESC rtbd;
+    ZeroMemory(&rtbd, sizeof(rtbd));
+
+    rtbd.BlendEnable = true;
+    rtbd.SrcBlend = D3D11_BLEND_SRC_COLOR;
+    rtbd.DestBlend = D3D11_BLEND_BLEND_FACTOR;
+    rtbd.BlendOp = D3D11_BLEND_OP_ADD;
+    rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
+    rtbd.DestBlendAlpha = D3D11_BLEND_ZERO;
+    rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    rtbd.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
+
+    blendDesc.AlphaToCoverageEnable = false;
+    blendDesc.RenderTarget[0] = rtbd;
+
+    hr = _pd3dDevice->CreateBlendState(&blendDesc, &_Transparency);
 
     if (FAILED(hr))
         return hr;
@@ -1041,6 +1085,7 @@ void Application::Cleanup()
     if (_depthStencilBuffer) _depthStencilBuffer->Release();
 
     if (_wireFrame) _wireFrame->Release();
+    if (_noCulling) _noCulling->Release();
 
     if (_pPyramidVB) _pPyramidVB->Release();
     if (_pPyramidIB) _pPyramidIB->Release();
@@ -1051,6 +1096,8 @@ void Application::Cleanup()
         _pQuadGen = nullptr; 
         delete _pQuadGen;
     }
+
+    if (_Transparency) _Transparency->Release();
 }
 
 void Application::Update()
@@ -1299,6 +1346,17 @@ void Application::Draw()
     }
 
     //
+    // Transparency option (DEFAULT)
+    //
+    // "fine-tune" the blending equation
+    float blendFactor[] = { 0.75f, 0.75f, 0.75f, 1.0f };
+
+    // Set the default blend state (no blending) for opaque objects
+    _pImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
+
+    // Render opaque objects //
+
+    //
     // Renders a pyramid
     //
 	_pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
@@ -1365,6 +1423,15 @@ void Application::Draw()
 
     _pImmediateContext->DrawIndexed(_pQuadGen->_indexCount, 0, 0);
 
+
+    //
+    // Transparency option (CUSTOM)
+    //
+    // Set the blend state for transparent objects
+    _pImmediateContext->OMSetBlendState(_Transparency, blendFactor, 0xffffffff);
+
+    // Render transparent objects //
+
     //
     // Draw Loaded Objects
     //
@@ -1385,6 +1452,21 @@ void Application::Draw()
     _pImmediateContext->IASetIndexBuffer(objMeshDataB.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
     _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
     _pImmediateContext->DrawIndexed(objMeshDataB.IndexCount, 0, 0);
+
+    // Toggle backface culling
+    if (!_enableWireFrame) {
+        _pImmediateContext->RSSetState(_noCulling);
+    }
+
+    /* draw transparent objects with no back faces here */
+    cbl.mWorld = XMMatrixTranspose(
+        XMMatrixMultiply(world, XMMatrixTranslation(0.0f, 0.0f, -5.0f))
+    );
+    _pImmediateContext->PSSetShaderResources(0, 1, &_pContainerRV); //set texture
+    _pImmediateContext->IASetVertexBuffers(0, 1, &objContainerMesh.VertexBuffer, &objContainerMesh.VBStride, &objContainerMesh.VBOffset);
+    _pImmediateContext->IASetIndexBuffer(objContainerMesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
+    _pImmediateContext->DrawIndexed(objContainerMesh.IndexCount, 0, 0);
 
     //
     // Present our back buffer to our front buffer
