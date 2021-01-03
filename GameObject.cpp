@@ -99,7 +99,9 @@ void GameObject::ImportIndices(WORD* src, int srcSize, bool calcNorms) {
 }
 
 void GameObject::CreateTexture(ID3D11Device& device, string filepath) {
-	CreateDDSTextureFromFile(&device, GetWC(filepath) , nullptr, &_textureRV);
+	HRESULT hr = CreateDDSTextureFromFile(&device, GetWC(filepath) , nullptr, &_textureRV);
+	if (FAILED(hr))
+		return;
 }
 
 void GameObject::Draw(ID3D11DeviceContext* context, ID3D11Buffer* buffer, ConstantBufferLite& cbl) {

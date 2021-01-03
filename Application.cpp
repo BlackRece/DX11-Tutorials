@@ -78,7 +78,7 @@ Application::Application()
     _pPyramidVC = 0;    		//VertexCount;
     _pPyramidIC = 0;            //IndexCount;
 
-    _pPyramidGO._pos = Vector3D(0.0f, -3.0f, 0.0f);
+    _pPyramidGO._pos = Vector3D(0.0f, -3.0f, -3.0f);
     _pPyramidGO._scale = Vector3D(1.0f, 1.0f, 1.0f);
     _pyramidGOs = new GameObject[_cubeNum];
 
@@ -816,7 +816,6 @@ HRESULT Application::InitPyramidGO() {
     if (FAILED(hr))
         return hr;
 
-
     WORD pyramidIndTex[] = {
         0,1,3,  1,2,3,  // bottom
         5,6,4,          // front
@@ -831,6 +830,9 @@ HRESULT Application::InitPyramidGO() {
 
     if (FAILED(hr))
         return hr;
+
+    //_pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/ChainLink.dds");
+    _pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
 
     for (int i = 0; i < (int)_cubeNum; i++) {
         _pPyramidGO.CopyObject(*_pd3dDevice, _pyramidGOs[i]);
@@ -1319,9 +1321,10 @@ void Application::Update()
 
     
     for (int i = 0; i < _cubeNum; i++) {
-        _pyramidGOs[i].LookTo(_cam[_camSelected].GetPos());
+        //_pyramidGOs[i].LookTo(_cam[_camSelected].GetPos());
         // this line made other cubes not render!?
         // too many objects to render?
+        _pyramidGOs[i]._pos.x -= _cubeNum / 2;
 
         _pyramidGOs[i].Update(t);
     }
@@ -1351,6 +1354,7 @@ void Application::Update()
         //_cubeGOs[i]._pos.x += t;
         _cubeGOs[i]._pos.x = tx;
         _cubeGOs[i]._pos.y = ty;
+        _cubeGOs[i]._pos.z = -5.0f;
 
         _cubeGOs[i]._angle.x = rotx;
         _cubeGOs[i]._angle.y = roty;
@@ -1486,9 +1490,12 @@ void Application::Draw()
 
     _pImmediateContext->DrawIndexed(_pQuadGen->_indexCount, 0, 0);
 
-    _pCubeGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    
+
+    _pPyramidGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
+
     for (int i = 0; i < _cubeNum; i++) {
-        _cubeGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
+        _pyramidGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
 
     //
@@ -1552,6 +1559,12 @@ void Application::Draw()
 
     for (int i = 0; i < _cubeNum; i++) {
         _pyramidGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    }
+
+    _pCubeGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
+
+    for (int i = 0; i < _cubeNum; i++) {
+        _cubeGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
 
     //
