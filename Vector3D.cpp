@@ -179,3 +179,8 @@ float Vector3D::show_Z() {
 void Vector3D::disp() {
     cout << x << " " << y << " " << z << endl;
 }
+
+float Vector3D::AngleTo(const Vector3D& vec) {
+    float angle = atan2f(x - vec.x, z - vec.z)* RAD;
+    return angle * RAD;
+}

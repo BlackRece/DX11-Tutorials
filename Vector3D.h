@@ -7,6 +7,9 @@ using namespace std;
 
 class Vector3D {
 public:
+	const float PI = (float)acos(-1);
+	const float RAD = 180 / PI;
+	const float DEG = PI / 180;
 	float x, y, z;
 
 	//Constructors
@@ -51,5 +54,7 @@ public:
 	float show_Z(); //return z
 	void disp();    //display value of vectors
 
+	//Angle operations
+	float AngleTo(const Vector3D& vec);
 };
 
