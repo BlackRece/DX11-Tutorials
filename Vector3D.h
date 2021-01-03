@@ -7,9 +7,11 @@ using namespace std;
 
 class Vector3D {
 public:
+	/* these cause uncaught STUPID errors 
 	const float PI = (float)acos(-1);
 	const float RAD = 180 / PI;
 	const float DEG = PI / 180;
+	*/
 	float x, y, z;
 
 	//Constructors

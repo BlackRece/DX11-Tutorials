@@ -49,19 +49,6 @@ struct ConstantBufferLite {
 	XMFLOAT3 EyePosW;			// Camera position in world space
 };
 
-// TODO: change to class
-/*
-struct Camera {
-	XMVECTOR Eye;		//cam pos
-	XMVECTOR At;		//cam dir
-	XMVECTOR Up;		//cam up
-
-	XMFLOAT3 EyeToFloat3() {
-		return XMFLOAT3{ Eye.m128_f32[0], Eye.m128_f32[1], Eye.m128_f32[2] };
-	}
-};
-*/
-
 struct VertexNormals {
 	XMFLOAT3 Pos;
 	XMFLOAT4 Normal;

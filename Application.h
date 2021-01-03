@@ -12,6 +12,7 @@
 #include "Lighting.h"
 #include "OBJLoader.h"
 #include "Camera.h"
+#include "GameObject.h"
 
 using namespace DirectX;
 
@@ -39,9 +40,6 @@ private:
 	int							_camNum;			// number of cameras
 	int							_camSelected;		// index of selected camera
 
-	XMFLOAT4X4*					_cubes;
-	UINT						_cubeNum;
-
 	UINT						_pIndexCount, _pVertexCount;
 
 	ID3D11DepthStencilView*		_depthStencilView;
@@ -60,12 +58,21 @@ private:
 	UINT						_pPyramidVC;		//VertexCount;
 	UINT						_pPyramidIC;		//IndexCount;
 
+	GameObject					_pPyramidGO;
+	GameObject*					_pyramidGOs;
+
 	//cube
+	XMFLOAT4X4*					_cubes;
+	UINT						_cubeNum;
+
 	MeshArray					_pCubeMesh;
 	ID3D11Buffer*				_pCubeVB;			//VertexBuffer;
 	ID3D11Buffer*				_pCubeIB;			//IndexBuffer;
 	UINT						_pCubeVC;			//VertexCount;
 	UINT						_pCubeIC;			//IndexCount;
+
+	GameObject					_pCubeGO;
+	GameObject*					_cubeGOs;
 
 	//plane
 	PlaneGenerator*				_pQuadGen;
@@ -112,13 +119,14 @@ private:
 	void Cleanup();
 	HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
 	HRESULT InitShadersAndInputLayout();
-	HRESULT InitVertexBuffer();
-	HRESULT InitIndexBuffer();
-
+	
 	HRESULT InitPlane();
 	HRESULT InitVerticalPlane();
 	HRESULT InitCubeNormals();
 	HRESULT InitPyramidNormals();
+
+	HRESULT InitCubeGO();
+	HRESULT InitPyramidGO();
 
 	UINT _WindowHeight;
 	UINT _WindowWidth;

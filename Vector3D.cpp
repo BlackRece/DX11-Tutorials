@@ -181,6 +181,7 @@ void Vector3D::disp() {
 }
 
 float Vector3D::AngleTo(const Vector3D& vec) {
-    float angle = atan2f(x - vec.x, z - vec.z)* RAD;
-    return angle * RAD;
+    float PI = (float)3.1415926535897932384626433;
+    float angle = atan2f(x - vec.x, z - vec.z)* (180/PI);
+    return angle * (180 / PI);
 }
