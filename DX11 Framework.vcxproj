@@ -381,6 +381,7 @@
     <ClCompile Include="DX11 Framework.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Lighting.cpp" />
+    <ClCompile Include="ModelObject.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="PlaneGenerator.cpp" />
     <ClCompile Include="Vector3D.cpp" />
@@ -394,6 +395,7 @@
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Lighting.h" />
+    <ClInclude Include="ModelObject.h" />
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="PlaneGenerator.h" />
     <CLInclude Include="resource.h" />

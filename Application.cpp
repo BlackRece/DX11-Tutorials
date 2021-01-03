@@ -616,7 +616,7 @@ HRESULT Application::InitCubeGO() {
         { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //1 rtb
     };  // 24 in total
 
-    _pCubeGO.ImportVertices(cubeVerTexC, sizeof(cubeVerTexC));
+    _pCubeGO._model->ImportVertices(cubeVerTexC, sizeof(cubeVerTexC));
 
     // Create textured index buffer with
     WORD cubeIndTex[] = {
@@ -628,14 +628,14 @@ HRESULT Application::InitCubeGO() {
        20,21,23,   23,22,20    // top
     };
 
-    _pCubeGO.ImportIndices(cubeIndTex, sizeof(cubeIndTex));
+    _pCubeGO._model->ImportIndices(cubeIndTex, sizeof(cubeIndTex));
 
-    hr = _pCubeGO.CreateVertexBuffer(*_pd3dDevice);
+    hr = _pCubeGO._model->CreateVertexBuffer(*_pd3dDevice);
 
     if (FAILED(hr))
         return hr;
 
-    hr = _pCubeGO.CreateIndexBuffer(*_pd3dDevice);
+    hr = _pCubeGO._model->CreateIndexBuffer(*_pd3dDevice);
 
     if (FAILED(hr))
         return hr; 
@@ -643,7 +643,8 @@ HRESULT Application::InitCubeGO() {
     _pCubeGO.CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
 
     for (int i = 0; i < (int)_cubeNum; i++) {
-        _pCubeGO.CopyObject(*_pd3dDevice, _cubeGOs[i]);
+        //_pCubeGO.CopyObject(*_pd3dDevice, _cubeGOs[i]);
+        _cubeGOs[i]._model = _pCubeGO._model;
 
         _cubeGOs[i]._pos = _pCubeGO._pos;
         _cubeGOs[i]._scale = _pCubeGO._scale;
@@ -809,9 +810,9 @@ HRESULT Application::InitPyramidGO() {
         { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(1.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //3
     };
 
-    _pPyramidGO.ImportVertices(pyramidVertTex, sizeof(pyramidVertTex));
+    _pPyramidGO._model->ImportVertices(pyramidVertTex, sizeof(pyramidVertTex));
     
-    hr = _pPyramidGO.CreateVertexBuffer(*_pd3dDevice);
+    hr = _pPyramidGO._model->CreateVertexBuffer(*_pd3dDevice);
 
     if (FAILED(hr))
         return hr;
@@ -824,18 +825,20 @@ HRESULT Application::InitPyramidGO() {
         14,15,13        // left
     };
 
-    _pPyramidGO.ImportIndices(pyramidIndTex, sizeof(pyramidIndTex));
+    _pPyramidGO._model->ImportIndices(pyramidIndTex, sizeof(pyramidIndTex));
 
-    hr = _pPyramidGO.CreateIndexBuffer(*_pd3dDevice);
+    hr = _pPyramidGO._model->CreateIndexBuffer(*_pd3dDevice);
 
     if (FAILED(hr))
         return hr;
 
-    //_pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/ChainLink.dds");
-    _pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
+    _pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/ChainLink.dds");
+    //_pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
 
     for (int i = 0; i < (int)_cubeNum; i++) {
-        _pPyramidGO.CopyObject(*_pd3dDevice, _pyramidGOs[i]);
+        //_pPyramidGO.CopyObject(*_pd3dDevice, _pyramidGOs[i]);
+        _pyramidGOs[i]._model = new ModelObject();
+        _pyramidGOs[i]._model = _pPyramidGO._model;
 
         _pyramidGOs[i]._pos = _pPyramidGO._pos;
         _pyramidGOs[i]._scale = _pPyramidGO._scale;
@@ -1027,7 +1030,7 @@ HRESULT Application::InitDevice()
         XMStoreFloat4x4(&_cubes[i], XMMatrixIdentity());
     }
 
-    //hr = InitPyramidGO();
+    hr = InitPyramidGO();
 
     // Initialize a loaded object
     //3ds Max
@@ -1317,14 +1320,14 @@ void Application::Update()
         )
     );
 
+    _pPyramidGO.LookTo(_cam[_camSelected].GetPos());
     _pPyramidGO.Update(t);
 
-    
     for (int i = 0; i < _cubeNum; i++) {
         //_pyramidGOs[i].LookTo(_cam[_camSelected].GetPos());
         // this line made other cubes not render!?
         // too many objects to render?
-        _pyramidGOs[i]._pos.x -= _cubeNum / 2;
+        _pyramidGOs[i]._pos.x = i * (float)_cubeNum * 0.5f;
 
         _pyramidGOs[i].Update(t);
     }
@@ -1555,11 +1558,13 @@ void Application::Draw()
 
     _pImmediateContext->DrawIndexed(_pPineGen->_indexCount, 0, 0);
 
+    /*
     _pPyramidGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     for (int i = 0; i < _cubeNum; i++) {
         _pyramidGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
+    */
 
     _pCubeGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
