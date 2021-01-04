@@ -73,24 +73,6 @@ Application::Application()
     _solarNum = 3;
     _solarGOs = new GameObject[_solarNum];
 
-    //quad
-    _pQuadGen = new PlaneGenerator();
-    _pQuadDims = { 4,4 };       //vertices width and height
-    _pQuadArea = { 10,10 };     //size of area for plane
-    _pQuadGen->position = Vector3D(0.0f, -10.0f, 7.0f);
-
-    _pQuadVB = nullptr;		    //VertexBuffer;
-    _pQuadIB = nullptr;		    //IndexBuffer;
-    
-    //pine tree plane
-    _pPineGen = new PlaneGenerator();
-    _pPineDims = { 4,4 };       //vertices width and height
-    _pPineArea = { 10,10 };     //size of area for plane
-    _pPineGen->position = Vector3D(0.0f, 0.0f, 12.5f);
-
-    _pPineVB = nullptr;		    //VertexBuffer;
-    _pPineIB = nullptr;		    //IndexBuffer;
-
     //gameObjects with planes
     //horizontal plane
     _goHPlane._pos = Vector3D(0.0f, -10.0f, 7.0f);
@@ -129,10 +111,7 @@ Application::Application()
     //setup random engine for cubes
     std::mt19937 rnd(randDevice());
 
-    //texturing
-    _pTextureRV = nullptr;
-    _pContainerRV = nullptr;
-    _pPineRV = nullptr;
+    
     _pSamplerLinear = nullptr;
 }
 
@@ -238,13 +217,6 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
     _cam[5].AddWayPoint(Vector3D(0.0f, 0.0f, -10.0f));
     _cam[5].AddWayPoint(Vector3D(10.0f, 0.0f, 0.0f));
 
-    // done automatically in Camera class
-    //XMStoreFloat4x4(&_view, XMMatrixLookAtLH(_cam.Eye, _cam.At, _cam.Up));
-
-    // Initialize the projection matrix
-    // done automatically in Camera class
-	//XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(XM_PIDIV2, _WindowWidth / (FLOAT) _WindowHeight, 0.01f, 100.0f));
-
 	return S_OK;
 }
 
@@ -325,120 +297,7 @@ HRESULT Application::InitPlane() {
     if (FAILED(hr))
         return hr;
 
-    _goVPlane.CreateTexture(*_pd3dDevice, "Textures / Pine Tree.dds");
-
-    // generate plane 
-    _pQuadGen->CreateGrid(
-        _pQuadArea.x, _pQuadArea.y,                 //size of area for plane
-        (UINT)_pQuadDims.x, (UINT)_pQuadDims.y,     //number of vertices per width and height
-        _pQuadGen->_meshData                        //the generated vertices and indices of plane
-    );
-
-    /*
-    // DEBUG: variable size check
-    int sizeVertex = sizeof(Vertex);            //48
-    int sizeMeshData = sizeof(MeshArray);        //32
-    int sizeVertices = sizeof(_pQuadGen->_meshData.Vertices);   //16
-    int sizeIndices = sizeof(_pQuadGen->_meshData.Indices);     //16
-    int sizeUnsignedInt= sizeof(unsigned int);                  //4
-    */
-
-    // create plane vertex buffer
-    D3D11_BUFFER_DESC vbd;
-    ZeroMemory(&vbd, sizeof(vbd));
-    vbd.Usage = D3D11_USAGE_DEFAULT;
-    //vbd.ByteWidth = sizeof(PlaneGenerator::Vertex) * _pQuadGen->_vertexCount;   //48*4 = 192
-    vbd.ByteWidth = (sizeof(Vertex) * _pQuadGen->_vertexCount);   //384
-    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vbd.CPUAccessFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA vInitData;
-    ZeroMemory(&vInitData, sizeof(vInitData));
-    vInitData.pSysMem = &_pQuadGen->_meshData.Vertices[0];
-
-    hr = _pd3dDevice->CreateBuffer(&vbd, &vInitData, &_pQuadVB);
-
-    if (FAILED(hr))
-        return hr;
-
-    // create plane index buffer
-    _pQuadGen->CreateIndices(_pQuadGen->_meshData);
-
-    D3D11_BUFFER_DESC ibd;
-    ZeroMemory(&ibd, sizeof(ibd));
-
-    ibd.Usage = D3D11_USAGE_DEFAULT;
-    ibd.ByteWidth = sizeof(unsigned int) * _pQuadGen->_indexCount;      //32
-    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    ibd.CPUAccessFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA iInitData;
-    ZeroMemory(&iInitData, sizeof(iInitData));
-    iInitData.pSysMem = &_pQuadGen->_meshData.Indices[0];
-    hr = _pd3dDevice->CreateBuffer(&ibd, &iInitData, &_pQuadIB);
-
-    if (FAILED(hr))
-        return hr;
-
-    UINT stride = sizeof(Vertex);
-    UINT offset = 0;
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pQuadVB, &stride, &offset);
-    _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R32_UINT, 0);
-
-    return hr;
-}
-
-HRESULT Application::InitVerticalPlane() {
-    HRESULT hr = S_OK;
-
-    // generate plane 
-    _pPineGen->CreateVerticalGrid(
-        _pPineArea.x, _pPineArea.y, 0.0f,                 //size of area for plane
-        (UINT)_pPineDims.x, (UINT)_pPineDims.y,     //number of vertices per width and height
-        _pPineGen->_meshData                        //the generated vertices and indices of plane
-    );
-
-    // create plane vertex buffer
-    D3D11_BUFFER_DESC vbd;
-    ZeroMemory(&vbd, sizeof(vbd));
-    vbd.Usage = D3D11_USAGE_DEFAULT;
-    //vbd.ByteWidth = sizeof(PlaneGenerator::Vertex) * _pPineGen->_vertexCount;   //48*4 = 192
-    vbd.ByteWidth = (sizeof(Vertex) * _pPineGen->_vertexCount);   //384
-    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vbd.CPUAccessFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA vInitData;
-    ZeroMemory(&vInitData, sizeof(vInitData));
-    vInitData.pSysMem = &_pPineGen->_meshData.Vertices[0];
-
-    hr = _pd3dDevice->CreateBuffer(&vbd, &vInitData, &_pPineVB);
-
-    if (FAILED(hr))
-        return hr;
-
-    // create plane index buffer
-    _pPineGen->CreateIndices(_pPineGen->_meshData);
-
-    D3D11_BUFFER_DESC ibd;
-    ZeroMemory(&ibd, sizeof(ibd));
-
-    ibd.Usage = D3D11_USAGE_DEFAULT;
-    ibd.ByteWidth = sizeof(unsigned int) * _pPineGen->_indexCount;      //32
-    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    ibd.CPUAccessFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA iInitData;
-    ZeroMemory(&iInitData, sizeof(iInitData));
-    iInitData.pSysMem = &_pPineGen->_meshData.Indices[0];
-    hr = _pd3dDevice->CreateBuffer(&ibd, &iInitData, &_pPineIB);
-
-    if (FAILED(hr))
-        return hr;
-
-    UINT stride = sizeof(Vertex);
-    UINT offset = 0;
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pPineVB, &stride, &offset);
-    _pImmediateContext->IASetIndexBuffer(_pPineIB, DXGI_FORMAT_R32_UINT, 0);
+    _goVPlane.CreateTexture(*_pd3dDevice, "Textures/Pine Tree.dds");
 
     return hr;
 }
@@ -787,8 +646,10 @@ HRESULT Application::InitDevice()
 
 	InitShadersAndInputLayout();
 
-    InitPlane();
-    InitVerticalPlane();
+    hr = InitPlane();
+
+    if (FAILED(hr))
+        return hr;
     
     hr = InitCubeGO();
 
@@ -855,16 +716,6 @@ HRESULT Application::InitDevice()
     //
     // Texturing and Sampling
     //
-
-    // Load crate texture from file
-    CreateDDSTextureFromFile(_pd3dDevice, L"Textures/Crate_COLOR.dds", nullptr, &_pTextureRV);
-    // Load cosmo texture from file
-    //CreateDDSTextureFromFile(_pd3dDevice, L"Models/Cosmo/OpticContainer.dds", nullptr, &_pContainerRV);
-    // Load pine tree texture from file
-    CreateDDSTextureFromFile(_pd3dDevice, L"Textures/Pine Tree.dds", nullptr, &_pPineRV);
-
-    // Select texture to use in pixel shader
-    _pImmediateContext->PSSetShaderResources(0, 1, &_pTextureRV);
     
     // Create the sample state
     D3D11_SAMPLER_DESC sampDesc;
@@ -932,11 +783,6 @@ void Application::Cleanup()
     if (_wireFrame) _wireFrame->Release();
     if (_noCulling) _noCulling->Release();
 
-    if (_pQuadGen) {
-        _pQuadGen = nullptr; 
-        delete _pQuadGen;
-    }
-
     if (_Transparency) _Transparency->Release();
 }
 
@@ -975,33 +821,8 @@ void Application::Update() {
     );
 
     //
-    // Update Planes
+    // Update Planes GameObjects
     //
-    //quad
-    XMStoreFloat4x4(&_pPlane, 
-        XMMatrixMultiply(
-            XMMatrixIdentity(),
-            XMMatrixTranslation(
-                _pQuadGen->position.show_X(),
-                _pQuadGen->position.show_Y(),
-                _pQuadGen->position.show_Z()
-            )
-        )
-    );
-
-    //pine
-    XMStoreFloat4x4(&_pPine,
-        XMMatrixMultiply(
-            XMMatrixIdentity(),
-            XMMatrixTranslation(
-                _pPineGen->position.show_X(),
-                _pPineGen->position.show_Y(),
-                _pPineGen->position.show_Z()
-            )
-        )
-    );
-
-    //plane gameObjects
     _goHPlane.Update(t);
     _goVPlane.Update(t);
 
@@ -1311,16 +1132,6 @@ void Application::Draw()
     _goCosmo.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     // pine plane
-    /*
-    cbl.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&_pPine));
-
-    _pImmediateContext->PSSetShaderResources(0, 1, &_pPineRV); //set texture
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pPineVB, &stride, &offset);
-    _pImmediateContext->IASetIndexBuffer(_pPineIB, DXGI_FORMAT_R16_UINT, 0);
-    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
-
-    _pImmediateContext->DrawIndexed(_pPineGen->_indexCount, 0, 0);
-    */
     _goVPlane.Draw(_pImmediateContext, _pConstantBuffer, cbl);
     
     //

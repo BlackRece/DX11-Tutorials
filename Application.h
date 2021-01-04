@@ -29,9 +29,13 @@ private:
 	ID3D11VertexShader*			_pVertexShader;
 	ID3D11PixelShader*			_pPixelShader;
 	ID3D11InputLayout*			_pVertexLayout;
+	ID3D11Buffer*				_pConstantBuffer;
+	ID3D11SamplerState*			_pSamplerLinear;	//Texturing Sampler
+	ID3D11BlendState*			_Transparency;		//transparency
+
+
 	ID3D11Buffer*				_pVertexBuffer;
 	ID3D11Buffer*				_pIndexBuffer;
-	ID3D11Buffer*				_pConstantBuffer;
 	XMFLOAT4X4					_world;
 	XMFLOAT4X4					_view;
 	XMFLOAT4X4					_projection;
@@ -65,21 +69,6 @@ private:
 	int							_solarNum;
 
 	//plane
-	PlaneGenerator*				_pQuadGen;
-	XMFLOAT4X4					_pPlane;
-	ID3D11Buffer*				_pQuadVB;			//VertexBuffer;
-	ID3D11Buffer*				_pQuadIB;			//IndexBuffer;
-	XMFLOAT2					_pQuadDims;			//vertex counts of quad
-	XMFLOAT2					_pQuadArea;			//size of plane
-
-	//pine tree plane
-	PlaneGenerator*				_pPineGen;
-	XMFLOAT4X4					_pPine;
-	ID3D11Buffer*				_pPineVB;			//VertexBuffer;
-	ID3D11Buffer*				_pPineIB;			//IndexBuffer;
-	XMFLOAT2					_pPineDims;			//vertex counts of quad
-	XMFLOAT2					_pPineArea;			//size of plane
-
 	GameObject					_goHPlane;
 	GameObject					_goVPlane;
 	
@@ -88,11 +77,7 @@ private:
 	//lighting
 	Lighting					_pLight;
 
-	//texturing
-	ID3D11ShaderResourceView*	_pTextureRV;		//Crate Texture
-	ID3D11ShaderResourceView*	_pContainerRV;		//Cosmo Texture
-	ID3D11ShaderResourceView*	_pPineRV;			//Pine Tree Texture
-	ID3D11SamplerState*			_pSamplerLinear;	//Sampler
+	//
 
 	//OBJ loader
 	GameObject					_goCosmo;
@@ -103,8 +88,7 @@ private:
 	std::random_device			randDevice;	
 	std::normal_distribution<float> nd;
 
-	//transparency
-	ID3D11BlendState*			_Transparency;
+	
 
 private:
 
@@ -114,7 +98,6 @@ private:
 	HRESULT InitDevice();
 
 	HRESULT InitPlane();
-	HRESULT InitVerticalPlane();
 	
 	HRESULT InitCubeGO();
 	HRESULT InitPyramidGO();
