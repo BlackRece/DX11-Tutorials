@@ -91,11 +91,26 @@ Application::Application()
     _pPineVB = nullptr;		    //VertexBuffer;
     _pPineIB = nullptr;		    //IndexBuffer;
 
+    //gameObjects with planes
+    //horizontal plane
+    _goHPlane._pos = Vector3D(0.0f, -10.0f, 7.0f);
+    _goHPlane._scale = Vector3D(1.0f, 1.0f, 1.0f);
+
+    //vertical plane
+    _goVPlane._pos = Vector3D(0.0f, 0.0f, 12.5f);
+    _goVPlane._scale = Vector3D(1.0f, 1.0f, 1.0f);
+
     _gTime = 0.0f;
 
-    //gameObject with loaded model
-    objContainerMesh._pos = Vector3D(3.0f, 3.0f, 3.0f);
-    objContainerMesh._scale = Vector3D(3.0f, 3.0f, 3.0f);
+    //gameObjects with loaded models
+    _goCosmo._pos = Vector3D(3.0f, 3.0f, 3.0f);
+    _goCosmo._scale = Vector3D(3.0f, 3.0f, 3.0f);
+
+    _goTorusKnot._pos = Vector3D(3.0f, -3.0f, 3.0f);
+    _goTorusKnot._scale = Vector3D(3.0f, 3.0f, 3.0f);
+
+    _goDonut._pos = Vector3D(-3.0f, -3.0f, 3.0f);
+    _goDonut._scale = Vector3D(3.0f, 3.0f, 3.0f);
 
     //lighting
     _pLight = Lighting();
@@ -301,6 +316,16 @@ HRESULT Application::InitShadersAndInputLayout()
 
 HRESULT Application::InitPlane() {
     HRESULT hr = S_OK;
+
+    hr = _goHPlane._model->CreatePlane(*_pd3dDevice, Vector3D(20,20,20), 4, 4);
+    if (FAILED(hr))
+        return hr;
+
+    hr = _goVPlane._model->CreatePlane(*_pd3dDevice, Vector3D(10,10,10), 4, 4, false);
+    if (FAILED(hr))
+        return hr;
+
+    _goVPlane.CreateTexture(*_pd3dDevice, "Textures / Pine Tree.dds");
 
     // generate plane 
     _pQuadGen->CreateGrid(
@@ -775,17 +800,22 @@ HRESULT Application::InitDevice()
     if (FAILED(hr))
         return hr;
 
-    // Initialize a loaded object
+    // Initialize a loaded objects
+    string imgpath = "Models/Cosmo/OpticContainer.dds";
     //3ds Max
-    objMeshDataA = OBJLoader::Load("Models/3dsMax/torusKnot.obj", _pd3dDevice);
+    //objMeshDataA = OBJLoader::Load("Models/3dsMax/torusKnot.obj", _pd3dDevice);
+    _goTorusKnot._model->LoadOBJ("Models/3dsMax/torusKnot.obj", _pd3dDevice);
+    _goTorusKnot.CreateTexture(*_pd3dDevice, imgpath);
 
     //Blender
-    objMeshDataB = OBJLoader::Load("Models/Blender/donut.obj", _pd3dDevice, false);
+    //objMeshDataB = OBJLoader::Load("Models/Blender/donut.obj", _pd3dDevice, false);
+    _goDonut._model->LoadOBJ("Models/Blender/donut.obj", _pd3dDevice, false);
+    _goDonut.CreateTexture(*_pd3dDevice, imgpath);
 
     //Cosmo??
-    //objContainerMesh = OBJLoader::Load("Models/Cosmo/OpticContainer.obj", _pd3dDevice, false);
-    objContainerMesh._model->LoadOBJ("Models/Cosmo/OpticContainer.obj", _pd3dDevice, false);
-    objContainerMesh.CreateTexture(*_pd3dDevice, "Models/Cosmo/OpticContainer.dds");
+    //_goCosmo = OBJLoader::Load("Models/Cosmo/OpticContainer.obj", _pd3dDevice, false);
+    _goCosmo._model->LoadOBJ("Models/Cosmo/OpticContainer.obj", _pd3dDevice, false);
+    _goCosmo.CreateTexture(*_pd3dDevice, imgpath);
     
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -945,7 +975,7 @@ void Application::Update() {
     );
 
     //
-    // Position planes
+    // Update Planes
     //
     //quad
     XMStoreFloat4x4(&_pPlane, 
@@ -971,6 +1001,10 @@ void Application::Update() {
         )
     );
 
+    //plane gameObjects
+    _goHPlane.Update(t);
+    _goVPlane.Update(t);
+
     //
     // Animate the pyramids
     //
@@ -990,7 +1024,9 @@ void Application::Update() {
     UpdateCubes(t);
 
     // Update Loaded Models
-    objContainerMesh.Update(t);
+    _goCosmo.Update(t);
+    _goDonut.Update(t);
+    _goTorusKnot.Update(t);
 
     // Update our cameras
     if (_camSelected == 4) {
@@ -1239,20 +1275,18 @@ void Application::Draw()
         _solarGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
 
-    // quad floor wireframe
+    // quad floor
+    /*
     cbl.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&_pPlane));
 
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pQuadVB, &stride, &offset);
-    /*
-    * due to DirectX fuckery! 
-    * c++ intrinsic int = 4 bytes = 32bits
-    * whereas <Window.h> UINT = 2 bytes = 16bits (aka SHORT!!)
-    * fucking Micro$haft!
-    */
+    
     _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R16_UINT, 0);
     _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
     _pImmediateContext->DrawIndexed(_pQuadGen->_indexCount, 0, 0);
+    */
+    _goHPlane.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     //
     // Transparency option (CUSTOM)
@@ -1265,24 +1299,8 @@ void Application::Draw()
     //
     // Draw Loaded Objects
     //
-    // object A
-    cbl.mWorld = XMMatrixTranspose(
-        XMMatrixMultiply(world, XMMatrixTranslation(3.0f,0.0f,0.0f))
-    );
-    _pImmediateContext->PSSetShaderResources(0, 1, &_pTextureRV);
-    _pImmediateContext->IASetVertexBuffers(0, 1, &objMeshDataA.VertexBuffer, &objMeshDataA.VBStride, &objMeshDataA.VBOffset);
-    _pImmediateContext->IASetIndexBuffer(objMeshDataA.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
-    _pImmediateContext->DrawIndexed(objMeshDataA.IndexCount, 0, 0);
-
-    // object b
-    cbl.mWorld = XMMatrixTranspose(
-        XMMatrixMultiply(world, XMMatrixTranslation(-3.0f, 0.0f, 0.0f))
-    );
-    _pImmediateContext->IASetVertexBuffers(0, 1, &objMeshDataB.VertexBuffer, &objMeshDataB.VBStride, &objMeshDataB.VBOffset);
-    _pImmediateContext->IASetIndexBuffer(objMeshDataB.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
-    _pImmediateContext->DrawIndexed(objMeshDataB.IndexCount, 0, 0);
+    _goDonut.Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    _goTorusKnot.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     // Toggle backface culling
     if (!_enableWireFrame) {
@@ -1290,19 +1308,10 @@ void Application::Draw()
     }
 
     /* draw transparent objects with no back faces here */
-    /*
-    cbl.mWorld = XMMatrixTranspose(
-        XMMatrixMultiply(XMMatrixIdentity(), XMMatrixTranslation(0.0f, -1.0f, -5.0f))
-    );
-    _pImmediateContext->PSSetShaderResources(0, 1, &_pContainerRV); //set texture
-    _pImmediateContext->IASetVertexBuffers(0, 1, &objContainerMesh.VertexBuffer, &objContainerMesh.VBStride, &objContainerMesh.VBOffset);
-    _pImmediateContext->IASetIndexBuffer(objContainerMesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
-    _pImmediateContext->DrawIndexed(objContainerMesh.IndexCount, 0, 0);
-    */
-    objContainerMesh.Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    _goCosmo.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     // pine plane
+    /*
     cbl.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&_pPine));
 
     _pImmediateContext->PSSetShaderResources(0, 1, &_pPineRV); //set texture
@@ -1311,6 +1320,8 @@ void Application::Draw()
     _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
     _pImmediateContext->DrawIndexed(_pPineGen->_indexCount, 0, 0);
+    */
+    _goVPlane.Draw(_pImmediateContext, _pConstantBuffer, cbl);
     
     //
     // Render cube array

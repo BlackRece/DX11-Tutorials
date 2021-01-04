@@ -79,6 +79,9 @@ private:
 	ID3D11Buffer*				_pPineIB;			//IndexBuffer;
 	XMFLOAT2					_pPineDims;			//vertex counts of quad
 	XMFLOAT2					_pPineArea;			//size of plane
+
+	GameObject					_goHPlane;
+	GameObject					_goVPlane;
 	
 	float						_gTime;
 
@@ -92,9 +95,9 @@ private:
 	ID3D11SamplerState*			_pSamplerLinear;	//Sampler
 
 	//OBJ loader
-	MeshData					objMeshDataA;
-	MeshData					objMeshDataB;
-	GameObject					objContainerMesh;
+	GameObject					_goCosmo;
+	GameObject					_goTorusKnot;
+	GameObject					_goDonut;
 
 	//randomiser util
 	std::random_device			randDevice;	

@@ -51,6 +51,28 @@ HRESULT ModelObject::CreateIndexBuffer(ID3D11Device& device) {
 	return device.CreateBuffer(&ibd, &iInitData, &_indexBuffer);
 }
 
+HRESULT ModelObject::CreatePlane(ID3D11Device& device, Vector3D dims,
+	int rows, int cols, bool isHorizontal) {
+	HRESULT hr = S_OK;
+	
+	PlaneGenerator plane = PlaneGenerator();
+	plane.CreateVertices(dims.x, dims.y, dims.z, rows, cols, _mesh, isHorizontal);
+	plane.CreateIndices(_mesh);
+
+	_vertexCount = plane._vertexCount;
+	_indexCount = plane._indexCount;
+
+	hr = CreateVertexBuffer(device);
+	if (FAILED(hr))
+		return hr;
+
+	hr = CreateIndexBuffer(device);
+	if (FAILED(hr))
+		return hr;
+
+	return hr;
+}
+
 void ModelObject::ImportVertices(VertexTextures* src, int srcSize) {
 	if (src == nullptr || srcSize < 1) return;
 

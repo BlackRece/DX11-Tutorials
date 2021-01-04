@@ -19,6 +19,10 @@ public:
 	void CreateGrid(float width, float depth, 
 		unsigned int row, unsigned int col, 
 		MeshArray& meshData);
+	void CreateVertices
+		(float width, float height, float depth,
+		int row, int col, MeshArray& meshData, 
+		bool isGridHorizontal);
 	void CreateVerticalGrid(float width, float height, float depth,
 		unsigned int row, unsigned int col,
 		MeshArray& meshData);

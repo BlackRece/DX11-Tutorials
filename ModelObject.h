@@ -2,6 +2,7 @@
 #include <DirectXMath.h>
 #include "Structures.h"
 #include "OBJLoader.h"
+#include "PlaneGenerator.h"
 
 using namespace DirectX;
 
@@ -25,6 +26,9 @@ public:
 	// Model
 	HRESULT CreateVertexBuffer(ID3D11Device& device);
 	HRESULT CreateIndexBuffer(ID3D11Device& device);
+
+	HRESULT CreatePlane(ID3D11Device& device, Vector3D dims,
+		int rows, int cols, bool isHorizontal = true);
 
 	void ImportVertices(VertexTextures* src, int srcSize);
 	void ImportIndices(WORD* src, int srcSize, bool calcNorms = true);
