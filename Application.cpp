@@ -58,26 +58,13 @@ Application::Application()
     _enableCulling = false;
 
     //cube
-    _pCubeMesh = MeshArray();
-    _pCubeVB = nullptr;		    //VertexBuffer;
-    _pCubeIB = nullptr;		    //IndexBuffer;
-    _pCubeVC = 0;    		    //VertexCount;
-    _pCubeIC = 0;               //IndexCount;
-
     _cubeNum = 5;       // number of cubes
-    _cubes = nullptr;
 
     _pCubeGO._pos = Vector3D(0.0f, 3.0f, 0.0f);
     _pCubeGO._scale = Vector3D(1.0f, 1.0f, 1.0f);
     _cubeGOs = new GameObject[_cubeNum];
 
     //pyramid
-    _pPyramidMesh = MeshArray();
-    _pPyramidVB = nullptr;		//VertexBuffer;
-    _pPyramidIB = nullptr;		//IndexBuffer;
-    _pPyramidVC = 0;    		//VertexCount;
-    _pPyramidIC = 0;            //IndexCount;
-
     _pPyramidGO._pos = Vector3D(0.0f, -3.0f, -3.0f);
     _pPyramidGO._scale = Vector3D(1.0f, 1.0f, 1.0f);
     _pyramidGOs = new GameObject[_cubeNum];
@@ -427,158 +414,6 @@ HRESULT Application::InitVerticalPlane() {
     return hr;
 }
 
-HRESULT Application::InitCubeNormals() {
-    HRESULT hr = S_OK;
-
-    /* old code for normals
-    // Create vertex buffer
-    SimpleVertex cubeVertices[] =
-    {
-        // back square
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },  //tl
-        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },   //tr
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) }, //bl
-        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },  //br
-
-        // front square
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },  //tl
-        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },   //tr
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) }, //bl
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },  //br
-    };
-
-    _pCubeVC = sizeof(cubeVertices);        //224 bytes
-
-    for (unsigned int i = 0; i < (_pCubeVC / sizeof(SimpleVertex)); i++) {
-        _pCubeMesh.Vertices.push_back(Vertex(cubeVertices[i].Pos));
-    }
-    */
-
-    VertexTextures cubeVerTexC[] = {
-        // back square (0-3)
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //0
-        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //1
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //2
-        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //3
-
-        // front square (4-7)
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
-        { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //5
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //6
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //7
-
-        // bottom (for texturing) (8-11)
-        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //2 lbb
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 0.0f) }, //3 rbb
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, //6 rbf
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //7 lbf
-
-        // right (for texturing) (12-15)
-        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //1 rtb
-        { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //5 rtf
-        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, //3 rbb
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //7 rbf
-
-        // left (for texturing) (16-19)
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, // ltf
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, // lbb
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, // lbf
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, // ltb
-
-        // top (for texturing) (20-23)
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //4 ltf
-        { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //5 rtf
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //0 ltb
-        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //1 rtb
-    };  // 24 in total
-
-    _pCubeVC = sizeof(cubeVerTexC);        //224 bytes
-
-    for (unsigned int i = 0; i < (_pCubeVC / sizeof(VertexTextures)); i++) {
-        _pCubeMesh.Vertices.push_back( Vertex(
-            cubeVerTexC[i].Pos, 
-            cubeVerTexC[i].TexC
-        ));
-    }
-
-    /*
-    * Texturing pseudo code
-    * foreach of CUBE face (pair of triangles)
-    *   find the four corner vectors
-    *   assign the the correct texture cords to those corners
-    *   foreach duplicated corner vectors
-    *       add an extra vector to accommodate the additional texture coord
-    */
-
-    // Create index buffer
-    WORD cubeIndices[] = {
-        0,1,2,  2,1,3,      // back
-        2,3,7,  7,6,2,      // bottom
-        1,5,7,  7,3,1,      // right
-        6,7,5,  5,4,6,      // front
-        4,0,2,  2,6,4,      // left
-        4,5,1,  1,0,4       // top
-    };
-
-    WORD cubeIndTex[] = {
-        0,1,2,      2,1,3,      // back
-        6,7,5,      5,4,6,      // front
-        11,9,8,     10,9,11,    // bottom
-        15,12,13,   14,12,15,   // right
-
-        16,19,18,   18,19,17,   // left
-
-        20,21,23,   23,22,20    // top
-    };
-
-    //_pIndexCount = sizeof(cubeIndices) / sizeof(WORD);
-    _pCubeIC = sizeof(cubeIndTex) / sizeof(WORD);
-
-    for (unsigned int i = 0; i < _pCubeIC; i++) {
-        //_pCubeMesh.Indices.push_back(cubeIndices[i]);
-        _pCubeMesh.Indices.push_back(cubeIndTex[i]);
-    }
-
-    PlaneGenerator::CalcNormals(_pCubeMesh.Vertices, _pCubeMesh.Indices);
-
-    D3D11_BUFFER_DESC bd;
-    ZeroMemory(&bd, sizeof(bd));
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    //bd.ByteWidth = _pCubeVC;
-    //bd.ByteWidth = sizeof(unsigned int) * _pCubeMesh.Vertices.size();
-    bd.ByteWidth = sizeof(Vertex) * _pCubeMesh.Vertices.size();
-
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.CPUAccessFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA InitData;
-    ZeroMemory(&InitData, sizeof(InitData));
-    InitData.pSysMem = &_pCubeMesh.Vertices[0];
-
-    hr = _pd3dDevice->CreateBuffer(&bd, &InitData, &_pCubeVB);
-
-    if (FAILED(hr))
-        return hr;
-
-    D3D11_BUFFER_DESC ibd;
-    ZeroMemory(&ibd, sizeof(ibd));
-
-    ibd.Usage = D3D11_USAGE_DEFAULT;
-    ibd.ByteWidth = _pCubeMesh.Indices.size() * sizeof(unsigned int);
-    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    ibd.CPUAccessFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA iInitData;
-    ZeroMemory(&iInitData, sizeof(iInitData));
-    iInitData.pSysMem = &_pCubeMesh.Indices[0];
-    hr = _pd3dDevice->CreateBuffer(&ibd, &iInitData, &_pCubeIB);
-
-    if (FAILED(hr))
-        return hr;
-
-    return hr;
-}
-
 HRESULT Application::InitCubeGO() {
     HRESULT hr = S_OK;
 
@@ -667,129 +502,6 @@ HRESULT Application::InitCubeGO() {
     _solarGOs[1].CreateTexture(*_pd3dDevice, "Textures/asphalt.dds");
 
     return hr;
-}
-
-HRESULT Application::InitPyramidNormals() {
-    HRESULT hr = S_OK;
-
-    /*
-    // create pyramid buffer
-    SimpleVertex pyramidVertices[] = {
-        // bottom square
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },    lbf
-        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },     
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
-
-        // top point
-        { XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) }
-    };
-
-    _pPyramidVC = sizeof(pyramidVertices);
-
-    for (unsigned int i = 0; i < (_pPyramidVC / sizeof(SimpleVertex)); i++) {
-        _pPyramidMesh.Vertices.push_back(Vertex(pyramidVertices[i].Pos));
-    }
-    */
-
-    // create pyramid buffer
-    VertexTextures pyramidVertTex[] = {
-        // bottom square (0-3)
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //0
-        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //1
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 0.0f) }, //2
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(1.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //3
-
-        // top point first - front face (4-6)
-        { XMFLOAT3(0.0f, 1.0f, 0.0f),       XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
-        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //1
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //0
-
-        // right face (7-9)
-        { XMFLOAT3(0.0f, 1.0f, 0.0f),       XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, //2
-        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //1
-
-        // back face (10-12)
-        { XMFLOAT3(0.0f, 1.0f, 0.0f),       XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(1.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //3
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //2
-
-        // left face (13-15)
-        { XMFLOAT3(0.0f, 1.0f, 0.0f),       XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, //0
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(1.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //3
-    };
-
-    _pPyramidVC = sizeof(pyramidVertTex);
-
-    for (unsigned int i = 0; i < (_pPyramidVC / sizeof(VertexTextures)); i++) {
-        _pPyramidMesh.Vertices.push_back(Vertex(
-            pyramidVertTex[i].Pos,
-            pyramidVertTex[i].TexC
-        ));
-    }
-
-    // Create pyramid index buffer
-    /*
-    WORD pyramidIndices[] = {
-        0,1,3,  1,2,3,  // bottom
-        1,0,4,          // front
-        2,1,4,          // right
-        3,2,4,          // back
-        0,3,4           // left
-    };
-    */
-    WORD pyramidIndTex[] = {
-        0,1,3,  1,2,3,  // bottom
-        5,6,4,          // front
-        8,9,7,          // right
-        11,12,10,       // back
-        14,15,13        // left
-    };
-
-    _pPyramidIC = sizeof(pyramidIndTex) / sizeof(WORD);
-
-    for (unsigned int i = 0; i < _pPyramidIC; i++) {
-        _pPyramidMesh.Indices.push_back(pyramidIndTex[i]);
-    }
-
-    PlaneGenerator::CalcNormals(_pPyramidMesh.Vertices, _pPyramidMesh.Indices);
-
-    D3D11_BUFFER_DESC pbd;
-    ZeroMemory(&pbd, sizeof(pbd));
-    pbd.Usage = D3D11_USAGE_DEFAULT;
-    //pbd.ByteWidth = _pPyramidVC;
-    pbd.ByteWidth = sizeof(Vertex) * _pPyramidMesh.Vertices.size();
-    pbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    pbd.CPUAccessFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA pInitData;
-    ZeroMemory(&pInitData, sizeof(pInitData));
-    pInitData.pSysMem = &_pPyramidMesh.Vertices[0];
-
-    hr = _pd3dDevice->CreateBuffer(&pbd, &pInitData, &_pPyramidVB);
-
-    if (FAILED(hr))
-        return hr;
-
-    D3D11_BUFFER_DESC ibd;
-    ZeroMemory(&ibd, sizeof(ibd));
-
-    ibd.Usage = D3D11_USAGE_DEFAULT;
-    ibd.ByteWidth = _pPyramidMesh.Indices.size() * sizeof(unsigned int);
-    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    ibd.CPUAccessFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA iInitData;
-    ZeroMemory(&iInitData, sizeof(iInitData));
-    iInitData.pSysMem = &_pPyramidMesh.Indices[0];
-    hr = _pd3dDevice->CreateBuffer(&ibd, &iInitData, &_pPyramidIB);
-
-    if (FAILED(hr))
-        return hr;
-
-    return S_OK;
 }
 
 HRESULT Application::InitPyramidGO() {
@@ -1048,21 +760,16 @@ HRESULT Application::InitDevice()
 
     InitPlane();
     InitVerticalPlane();
-    InitCubeNormals();
-    InitPyramidNormals();
-
+    
     hr = InitCubeGO();
 
     if (FAILED(hr))
         return hr;
 
-    // Initialize the matrices of cubes
-    _cubes = new XMFLOAT4X4[_cubeNum];
-    for (UINT i = 0; i < _cubeNum; i++) {
-        XMStoreFloat4x4(&_cubes[i], XMMatrixIdentity());
-    }
-
     hr = InitPyramidGO();
+    
+    if (FAILED(hr))
+        return hr;
 
     // Initialize a loaded object
     //3ds Max
@@ -1189,11 +896,6 @@ void Application::Cleanup()
     if (_wireFrame) _wireFrame->Release();
     if (_noCulling) _noCulling->Release();
 
-    if (_pPyramidVB) _pPyramidVB->Release();
-    if (_pPyramidIB) _pPyramidIB->Release();
-
-    if (_pCubeVB) _pCubeVB->Release();
-    if (_pCubeIB) _pCubeIB->Release();
     if (_pQuadGen) {
         _pQuadGen = nullptr; 
         delete _pQuadGen;
@@ -1283,7 +985,7 @@ void Application::Update() {
 
     // Update our cameras
     if (_camSelected == 4) {
-        _cam[_camSelected].SetView(_cubes[1]);
+        _cam[_camSelected].SetView(_cubeGOs[1]._matrix);
     }
     _cam[_camSelected].Update();
 }
@@ -1370,7 +1072,7 @@ void Application::UpdateCubes(float t) {
     Vector3D tmp;
     for (int i = 0; i < _cubeNum; i++) {
         if (i % 2 == 0) {
-            ty = float((i * 1.5f) - (_cubeNum / 2));
+            ty = float((i * 1.5f) - (_cubeNum / 2.0f));
             tx = -2;
             rotx = -i * t;
             roty = t;
@@ -1478,21 +1180,22 @@ void Application::Draw()
     Vector3D cam = _cam[_camSelected].GetPos();
     cbl.EyePosW = XMFLOAT3{ cam.x, cam.y, cam.z };
 
+    // Set primitive topology
+    _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    _pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
+    _pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
+    _pImmediateContext->PSSetConstantBuffers(0, 1, &_pConstantBuffer);
+    _pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
+    
     //update directX with cb lite
 	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
+
+    // "fine-tune" the blending equation
+    float blendFactor[] = { 0.75f, 0.75f, 0.75f, 1.0f };
     
-    // Set vertex buffer
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pPyramidVB, &stride, &offset);
-
-    // Set index buffer
-    _pImmediateContext->IASetIndexBuffer(_pPyramidIB, DXGI_FORMAT_R32_UINT, 0);
-
-    // Set primitive topology
-    _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
     // Toggle wireframe
     if (_enableWireFrame) {
         _pImmediateContext->RSSetState(_wireFrame);
@@ -1503,9 +1206,6 @@ void Application::Draw()
     //
     // Transparency option (DEFAULT)
     //
-    // "fine-tune" the blending equation
-    float blendFactor[] = { 0.75f, 0.75f, 0.75f, 1.0f };
-
     // Set the default blend state (no blending) for opaque objects
     _pImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
 
@@ -1514,28 +1214,18 @@ void Application::Draw()
     //
     // Renders a pyramid
     //
-    _pImmediateContext->PSSetShaderResources(0, 1, &_pTextureRV);
-	_pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
-	_pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
-    _pImmediateContext->PSSetConstantBuffers(0, 1, &_pConstantBuffer);
-	_pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
-    _pImmediateContext->DrawIndexed(_pPyramidIC, 0, 0);
+    _pPyramidGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     //
-    // Render cube array
+    // Render pyramid array
     //
-    /* solar system simulation */
-    for (int i = 0; i < 3; i++) {
-        world = XMLoadFloat4x4(&_cubes[i]);
-        cbl.mWorld = XMMatrixTranspose(world);
-        _pImmediateContext->IASetVertexBuffers(0, 1, &_pCubeVB, &stride, &offset);
-        _pImmediateContext->IASetIndexBuffer(_pCubeIB, DXGI_FORMAT_R32_UINT, 0);
-        _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
-
-        _pImmediateContext->DrawIndexed(_pCubeIC, 0, 0);
+    for (int i = 0; i < _cubeNum; i++) {
+        _pyramidGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
 
+    //
+    // Render solar system simulation
+    //
     for (int i = 0; i < _solarNum; i++) {
         _solarGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
@@ -1543,7 +1233,6 @@ void Application::Draw()
     // quad floor wireframe
     cbl.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&_pPlane));
 
-    stride = sizeof(Vertex);
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pQuadVB, &stride, &offset);
     /*
     * due to DirectX fuckery! 
@@ -1551,20 +1240,10 @@ void Application::Draw()
     * whereas <Window.h> UINT = 2 bytes = 16bits (aka SHORT!!)
     * fucking Micro$haft!
     */
-    //_pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R16_UINT, 0);
     _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R32_UINT, 0);
-    _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
     _pImmediateContext->DrawIndexed(_pQuadGen->_indexCount, 0, 0);
-
-    
-
-    _pPyramidGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
-
-    for (int i = 0; i < _cubeNum; i++) {
-        _pyramidGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
-    }
 
     //
     // Transparency option (CUSTOM)
@@ -1614,23 +1293,16 @@ void Application::Draw()
     // pine plane
     cbl.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&_pPine));
 
-    stride = sizeof(Vertex);
     _pImmediateContext->PSSetShaderResources(0, 1, &_pPineRV); //set texture
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pPineVB, &stride, &offset);
     _pImmediateContext->IASetIndexBuffer(_pPineIB, DXGI_FORMAT_R32_UINT, 0);
-    _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
     _pImmediateContext->DrawIndexed(_pPineGen->_indexCount, 0, 0);
-
-    /*
-    _pPyramidGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
-
-    for (int i = 0; i < _cubeNum; i++) {
-        _pyramidGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
-    }
-    */
-
+    
+    //
+    // Render cube array
+    //
     _pCubeGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     for (int i = 0; i < _cubeNum; i++) {

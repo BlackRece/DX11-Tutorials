@@ -52,25 +52,11 @@ private:
 	bool						_enableCulling;
 
 	//pyramid
-	MeshArray					_pPyramidMesh;
-	ID3D11Buffer*				_pPyramidVB;		//VertexBuffer;
-	ID3D11Buffer*				_pPyramidIB;		//IndexBuffer;
-	UINT						_pPyramidVC;		//VertexCount;
-	UINT						_pPyramidIC;		//IndexCount;
-
 	GameObject					_pPyramidGO;
 	GameObject*					_pyramidGOs;
 
 	//cube
-	XMFLOAT4X4*					_cubes;
-	UINT						_cubeNum;
-
-	MeshArray					_pCubeMesh;
-	ID3D11Buffer*				_pCubeVB;			//VertexBuffer;
-	ID3D11Buffer*				_pCubeIB;			//IndexBuffer;
-	UINT						_pCubeVC;			//VertexCount;
-	UINT						_pCubeIC;			//IndexCount;
-
+	int							_cubeNum;
 	GameObject					_pCubeGO;
 	GameObject*					_cubeGOs;
 
@@ -126,9 +112,7 @@ private:
 
 	HRESULT InitPlane();
 	HRESULT InitVerticalPlane();
-	HRESULT InitCubeNormals();
-	HRESULT InitPyramidNormals();
-
+	
 	HRESULT InitCubeGO();
 	HRESULT InitPyramidGO();
 	
