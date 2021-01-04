@@ -13,14 +13,14 @@ GameObject::~GameObject() {
 void GameObject::CopyObject(ID3D11Device& device, GameObject& target) {
 	// only need to copy a reference to the ModelObject
 	/*
-	target._mesh = this->_mesh;
-	target._vertexCount = this->_vertexCount;
-	target._indexCount = this->_indexCount;
+	targetPos._mesh = this->_mesh;
+	targetPos._vertexCount = this->_vertexCount;
+	targetPos._indexCount = this->_indexCount;
 
-	target.CalcNormals(target._mesh.Vertices, target._mesh.Indices);
+	targetPos.CalcNormals(targetPos._mesh.Vertices, targetPos._mesh.Indices);
 
-	target.CreateVertexBuffer(device);
-	target.CreateIndexBuffer(device);
+	targetPos.CreateVertexBuffer(device);
+	targetPos.CreateIndexBuffer(device);
 	*/
 }
 
@@ -55,6 +55,20 @@ void GameObject::Update(float deltaTime) {
 	);
 }
 
+Vector3D GetRotation(XMFLOAT4X4 target) {
+	Vector3D angle;
+
+	if ((target._11 == 1.0f)||(target._11 == -1.0f)) {
+		angle.x = atan2f(target._13, target._34);
+	} else {
+		angle.x = atan2f(-target._31, target._11);
+		angle.y = asin(target._21);
+		angle.z = atan2f(-target._23, target._22);
+	}
+
+	return angle;
+}
+
 void GameObject::LookTo(Vector3D camUp, Vector3D camRight) {
 	Vector3D vertexPos =
 		_pos +
@@ -68,11 +82,24 @@ void GameObject::LookTo(Vector3D camUp, Vector3D camRight) {
 void GameObject::LookTo(Vector3D target) {
 	// Calculate the rotation that needs to be applied to the billboard model to face the current camera position using the arc tangent function.
 	//angle = atan2(modelPosition.x - cameraPosition.x, modelPosition.z - cameraPosition.z) * (180.0 / D3DX_PI);
-	float angle = _pos.AngleTo(target);
+	/*
+	float angle = _pos.AngleY(target);
 
-	_angle.y = angle;
+	_angle.y = (-angle/XM_PI)/4;// *(XM_PI / 180));
+	*/
+	float dot = _pos.dot_product(target);
+	float mag = _pos.magnitude() * target.magnitude();
+	float angle = dot / mag;
+	_angle.y = (acosf(angle) * (180 / XM_PI))/16;
 }
 
+void GameObject::RotateTo(Vector3D targetPos, Vector3D targetUp) {
+	XMVECTOR pos= XMVectorSet(_pos.x, _pos.y, _pos.z, 0.0f);
+	XMVECTOR at = XMVectorSet(targetPos.x, targetPos.y, targetPos.z, 0.0f);
+	XMVECTOR up = XMVectorSet(targetUp.x, targetUp.y, targetUp.z, 0.0f);
+
+	XMStoreFloat4x4(&_matrix, XMMatrixLookAtLH(pos, at, up));
+}
 
 void GameObject::CleanUp() {
 	if (_wc) { _wc = nullptr; delete _wc; }

@@ -89,7 +89,7 @@ Vector3D& Vector3D::operator=(const Vector3D& vec) {
     return *this;
 }
 
-//Dot product
+//Dot product (angle)
 float Vector3D::dot_product(const Vector3D& vec) {
     //returns (x1*x2 + y1*y2 + x1*z2) 
     //where these are the terms from each vector 
@@ -124,7 +124,7 @@ Vector3D Vector3D::cross_product(const Vector3D& vec) {
 
 float Vector3D::magnitude() {
     //return square root of sum of the squared components
-    return sqrtf(sqrtf((x * x) + (y * y) + (z * z)));
+    return sqrtf((x * x) + (y * y) + (z * z));
 }
 
 Vector3D Vector3D::ComputeNormal(
@@ -184,4 +184,18 @@ float Vector3D::AngleTo(const Vector3D& vec) {
     float PI = (float)3.1415926535897932384626433;
     float angle = atan2f(x - vec.x, z - vec.z)* (180/PI);
     return angle * (180 / PI);
+}
+
+//returns X angle (YZ Dot product)
+float Vector3D::AngleX(const Vector3D& vec) {
+    return ((y * vec.y) + (z * vec.z));
+}
+
+//returns Y angle (XZ Dot product)
+float Vector3D::AngleY(const Vector3D& vec) {
+    return ((x * vec.x) + (z * vec.z));
+}//returns Z angle (XY Dot product)
+
+float Vector3D::AngleZ(const Vector3D& vec) {
+    return ((x * vec.x) + (y * vec.y));
 }

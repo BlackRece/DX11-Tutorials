@@ -43,6 +43,10 @@ void Camera::AddWayPoint(WayPoint newPoint) {
     _points.push_back(newPoint);
 }
 
+Vector3D Camera::GetAngle() {
+    return _angle;
+}
+
 Vector3D Camera::GetLookAt() {
     return _at;
 }
@@ -59,8 +63,49 @@ XMMATRIX Camera::GetProjection() {
     return XMLoadFloat4x4(&_projection);
 }
 
+/*
+//Returns the Yaw, Pitch, and Roll components of this matrix. This
+//function only works with pure rotation matrices.
+void GetRotation(float *v) const		{
+    //yaw=v[0], pitch=v[1], roll=v[2]
+    //Note, we use the cosf function rather than sinf just in case the
+    //angles are greater than [-1,+1]
+    v[1]  = -asinf(_32); //pitch
+    float cp = cosf(v[1]); 			//_22 = cr * cp;
+    float cr = _22 / cp;
+    v[2] = acosf(cr);
+    //_33 = cy * cp;			
+    float cy = _33 / cp;			
+    v[0] = acosf(cy);		
+}		
+//creates a rotation matrix based on euler angles Y * P * R		
+//in the same order as DirectX.		
+void Rotate(const float *v)		{
+    //yaw=v[0], pitch=v[1], roll=v[2]
+    float cy = cosf(v[0]);
+    float cp = cosf(v[1]);
+    float cr = cosf(v[2]);
+    float sp = sinf(v[1]);
+    float sr = sinf(v[2]);
+    float sy = sinf(v[0]);
+    _11  = cy * cr+ sr * sp * sy;
+    _12 = sr * cp;
+    _13 = cr * -sy + sr * sp * cy;
+    _21 = -sr * cy + cr * sp * sy;
+    _22 = cr * cp;
+    _23 = -sr * -sy + cr * sp * cy;
+    _31 = cp * sy;
+    _32 = -sp;
+    _33 = cy * cp;		
+}
+*/
+
 Vector3D Camera::GetUp() {
     return _up;
+}
+
+XMFLOAT4X4 Camera::GetView4x4(){
+    return _view;
 }
 
 XMMATRIX Camera::GetView() {
@@ -131,12 +176,15 @@ void Camera::Rotate(Vector3D angles) {
 }
 
 void Camera::RotateX(float xAxis) {
+    _angle.x = xAxis;
     SetView(XMMatrixMultiply(GetView(), XMMatrixRotationX(xAxis)));
 }
 void Camera::RotateY(float yAxis) {
+    _angle.y = yAxis;
     SetView(XMMatrixMultiply(GetView(), XMMatrixRotationY(yAxis)));
 }
 void Camera::RotateZ(float zAxis) {
+    _angle.z = zAxis;
     SetView(XMMatrixMultiply(GetView(), XMMatrixRotationZ(zAxis)));
 }
 
@@ -179,8 +227,9 @@ void Camera::SetUp(Vector3D up) {
     _up = up;
 }
 
-void Camera::Translate(float xAxis, float yAxis, float zAxis) {
-    SetView(XMMatrixMultiply(GetView(), XMMatrixTranslation(xAxis, yAxis, zAxis)));
+void Camera::Translate(float xPos, float yPos, float zPos) {
+    SetPos(Vector3D(xPos, yPos, zPos));
+    SetView(XMMatrixMultiply(GetView(), XMMatrixTranslation(xPos, yPos, zPos)));
 }
 
 void Camera::Translate(Vector3D pos) {

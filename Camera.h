@@ -21,6 +21,8 @@ private:
 	Vector3D _to;
 	Vector3D _up;
 
+	Vector3D _angle;
+
 	std::vector<WayPoint> _points;
 	int _pointIndex;
 	bool _isUsingWayPoints;
@@ -65,11 +67,13 @@ public:
 	// position, lookat and up attributes
 	// You will need functions to get the View, Projection and 
 	// combined ViewProjection matrices
+	Vector3D GetAngle();
 	Vector3D GetLookAt();
 	Vector3D GetLookTo();
 	Vector3D GetPos();
 	XMMATRIX GetProjection();
 	Vector3D GetUp();
+	XMFLOAT4X4 GetView4x4();
 	XMMATRIX GetView();
 	XMMATRIX GetViewProj();
 

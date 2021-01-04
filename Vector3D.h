@@ -58,5 +58,8 @@ public:
 
 	//Angle operations
 	float AngleTo(const Vector3D& vec);
+	float AngleX(const Vector3D& vec);
+	float AngleY(const Vector3D& vec);
+	float AngleZ(const Vector3D& vec);
 };
 

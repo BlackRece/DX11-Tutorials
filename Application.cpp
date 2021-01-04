@@ -82,6 +82,10 @@ Application::Application()
     _pPyramidGO._scale = Vector3D(1.0f, 1.0f, 1.0f);
     _pyramidGOs = new GameObject[_cubeNum];
 
+    //solar system example
+    _solarNum = 3;
+    _solarGOs = new GameObject[_solarNum];
+
     //quad
     _pQuadGen = new PlaneGenerator();
     _pQuadDims = { 4,4 };       //vertices width and height
@@ -618,6 +622,11 @@ HRESULT Application::InitCubeGO() {
 
     _pCubeGO._model->ImportVertices(cubeVerTexC, sizeof(cubeVerTexC));
 
+    hr = _pCubeGO._model->CreateVertexBuffer(*_pd3dDevice);
+
+    if (FAILED(hr))
+        return hr;
+
     // Create textured index buffer with
     WORD cubeIndTex[] = {
        0,1,2,      2,1,3,      // back
@@ -630,11 +639,6 @@ HRESULT Application::InitCubeGO() {
 
     _pCubeGO._model->ImportIndices(cubeIndTex, sizeof(cubeIndTex));
 
-    hr = _pCubeGO._model->CreateVertexBuffer(*_pd3dDevice);
-
-    if (FAILED(hr))
-        return hr;
-
     hr = _pCubeGO._model->CreateIndexBuffer(*_pd3dDevice);
 
     if (FAILED(hr))
@@ -642,8 +646,8 @@ HRESULT Application::InitCubeGO() {
 
     _pCubeGO.CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
 
+    // Duplicate for array
     for (int i = 0; i < (int)_cubeNum; i++) {
-        //_pCubeGO.CopyObject(*_pd3dDevice, _cubeGOs[i]);
         _cubeGOs[i]._model = _pCubeGO._model;
 
         _cubeGOs[i]._pos = _pCubeGO._pos;
@@ -652,6 +656,15 @@ HRESULT Application::InitCubeGO() {
         _cubeGOs[i].CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
 
     }
+
+    // Duplicate for solar array
+    //planet
+    _solarGOs[1]._model = _pCubeGO._model;
+
+    _solarGOs[1]._pos = _pCubeGO._pos;
+    _solarGOs[1]._scale = _pCubeGO._scale;
+
+    _solarGOs[1].CreateTexture(*_pd3dDevice, "Textures/asphalt.dds");
 
     return hr;
 }
@@ -832,11 +845,11 @@ HRESULT Application::InitPyramidGO() {
     if (FAILED(hr))
         return hr;
 
-    _pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/ChainLink.dds");
-    //_pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
+    //_pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/ChainLink.dds");
+    _pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
 
+    // Duplicate for array
     for (int i = 0; i < (int)_cubeNum; i++) {
-        //_pPyramidGO.CopyObject(*_pd3dDevice, _pyramidGOs[i]);
         _pyramidGOs[i]._model = new ModelObject();
         _pyramidGOs[i]._model = _pPyramidGO._model;
 
@@ -845,6 +858,25 @@ HRESULT Application::InitPyramidGO() {
 
         _pyramidGOs[i].CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
     }
+
+    // Duplicate for solar system
+    //sun
+    _solarGOs[0]._model = new ModelObject();
+    _solarGOs[0]._model = _pPyramidGO._model;
+
+    _solarGOs[0]._pos = _pPyramidGO._pos;
+    _solarGOs[0]._scale = _pPyramidGO._scale;
+
+    _solarGOs[0].CreateTexture(*_pd3dDevice, "Textures/2k_mars.dds");
+
+    //moon
+    _solarGOs[2]._model = new ModelObject();
+    _solarGOs[2]._model = _pPyramidGO._model;
+
+    _solarGOs[2]._pos = _pPyramidGO._pos;
+    _solarGOs[2]._scale = _pPyramidGO._scale;
+
+    _solarGOs[2].CreateTexture(*_pd3dDevice, "Textures/2k_mars.dds");
 
     return hr;
 }
@@ -1170,17 +1202,12 @@ void Application::Cleanup()
     if (_Transparency) _Transparency->Release();
 }
 
-void Application::Update()
-{
-    // Update our time
-    static float t = 0.0f;
+float Application::GetDeltaTime() {
+    float t = 0.0f;
 
-    if (_driverType == D3D_DRIVER_TYPE_REFERENCE)
-    {
-        t += (float) XM_PI * 0.0125f;
-    }
-    else
-    {
+    if (_driverType == D3D_DRIVER_TYPE_REFERENCE) {
+        t += (float)XM_PI * 0.0125f;
+    } else {
         static ULONGLONG dwTimeStart = 0;
         ULONGLONG dwTimeCur = GetTickCount64();
 
@@ -1190,9 +1217,78 @@ void Application::Update()
         t = (dwTimeCur - dwTimeStart) / 1000.0f;
     }
 
+    return t;
+}
+
+void Application::Update() {
+    // Update our time
+    static float t = 0.0f;
+    t = GetDeltaTime();
+
     //update constant buffer
     _gTime = t;
 
+    UpdateInput(t);
+    
+    UpdateSolar(t, 
+        &_solarGOs[0]._matrix,      // sun
+        &_solarGOs[1]._matrix,      // planet
+        &_solarGOs[2]._matrix       // moon
+    );
+
+    //
+    // Position planes
+    //
+    //quad
+    XMStoreFloat4x4(&_pPlane, 
+        XMMatrixMultiply(
+            XMMatrixIdentity(),
+            XMMatrixTranslation(
+                _pQuadGen->position.show_X(),
+                _pQuadGen->position.show_Y(),
+                _pQuadGen->position.show_Z()
+            )
+        )
+    );
+
+    //pine
+    XMStoreFloat4x4(&_pPine,
+        XMMatrixMultiply(
+            XMMatrixIdentity(),
+            XMMatrixTranslation(
+                _pPineGen->position.show_X(),
+                _pPineGen->position.show_Y(),
+                _pPineGen->position.show_Z()
+            )
+        )
+    );
+
+    //
+    // Animate the pyramids
+    //
+    _pPyramidGO._scale = Vector3D(4.0f, 4.0f, 4.0f);
+    _pPyramidGO._angle = Vector3D(0.0f, -t, -t);
+    _pPyramidGO._pos.z = 10.0f;
+    
+    _pPyramidGO.Update(t);
+    
+    UpdateBillBoards(t, _pyramidGOs, _cubeNum);
+
+    //
+    // Animate the cubes
+    //
+    _pCubeGO.Update(t);
+
+    UpdateCubes(t);
+
+    // Update our cameras
+    if (_camSelected == 4) {
+        _cam[_camSelected].SetView(_cubes[1]);
+    }
+    _cam[_camSelected].Update();
+}
+
+void Application::UpdateInput(float t) {
     //keyboard input
     // should be handled by window not graphics
     if (GetKeyState('Q') & 0x8000) {
@@ -1203,7 +1299,7 @@ void Application::Update()
     if (GetKeyState('1') & 0x8000) {
         _camSelected = 0;
     }
-    
+
     if (GetKeyState('2') & 0x8000) {
         _camSelected = 1;
     }
@@ -1243,100 +1339,30 @@ void Application::Update()
     if (GetKeyState(' ') & 0x8000) {
         _cam[_camSelected].SetView();
     }
+}
 
-    //
-    // Animate the pyramid
-    //
-	XMStoreFloat4x4(&_world, 
-        XMMatrixScaling(4.0f,4.0f,4.0f) *
-        XMMatrixRotationZ(-t) * 
-        XMMatrixRotationY(-t) *
-        XMMatrixTranslation(0.0f,0.0f,10.0f)
-    );
+void Application::UpdateBillBoards(float t, GameObject* gObjs, int objCount) {
+    //theta = cos^-1 [(A dot B) / (|A| |B|)]
+    //float angle = _pPyramidGO._pos.dot_product(_cam[_camSelected].GetPos());
+    //_pPyramidGO._angle.y = angle;
+    //_pPyramidGO._angle.y = _cam[_camSelected].GetAngle().y;
+    //XMFLOAT4X4 target = _cam[_camSelected].GetView4x4();
+    //Vector3D angle = _pPyramidGO.GetRotation(target);
+    //_pPyramidGO._angle.y = angle.y;
 
-   //
-    // Animate solar system simulation
-    //
-    XMMATRIX sun, planet, moon;             // define some matrices
+    for (int i = 0; i < objCount; i++) {
+        gObjs[i]._pos.x = i * (float)objCount * 0.5f;
 
-    // sun
-    sun = XMMatrixIdentity();               // reset sun to identity matrix
+        gObjs[i].LookTo(_cam[_camSelected].GetPos());
 
-    sun = XMMatrixMultiply(                 // replace sun matrix...
-        XMMatrixRotationZ(t),                // ... adding a rotation
-        sun                                // ... with this matrix, after...
-    );
-    XMStoreFloat4x4(
-        &_cubes[0],
-        XMMatrixMultiply(                 // replace sun matrix...
-            XMMatrixRotationZ(t),                // ... adding a rotation
-            sun
-            )
-    );       // set a cube to the sun matrix
-
-    // planet 1
-    planet = XMMatrixIdentity();            // reset planet to identity matrix
-
-    planet = XMMatrixMultiply(              // replace planet matrix...
-        XMMatrixTranslation(5.0f,0.0f,0.0),  // ... adding translation by 4 units
-        sun                                // ... with this matrix, after...
-    );
-    XMStoreFloat4x4(&_cubes[1], planet);    // set a cube to the planet matrix
-
-    // moon 1
-    moon = XMMatrixIdentity();              // reset moon to identity matrix
-
-    moon = XMMatrixMultiply(                // replace moon matrix...
-        XMMatrixTranslation(4.0f, 0.0f, 0.0) * // ... adding translation by 4 units
-        XMMatrixRotationZ(t),                 // ... adding a rotation
-        planet                                   // ... with this matrix, after...
-    );
-    XMStoreFloat4x4(&_cubes[2], moon);    // set a cube to the moon matrix
-
-    //
-    // Position planes
-    //
-    //quad
-    XMStoreFloat4x4(&_pPlane, 
-        XMMatrixMultiply(
-            XMMatrixIdentity(),
-            XMMatrixTranslation(
-                _pQuadGen->position.show_X(),
-                _pQuadGen->position.show_Y(),
-                _pQuadGen->position.show_Z()
-            )
-        )
-    );
-
-    //pine
-    XMStoreFloat4x4(&_pPine,
-        XMMatrixMultiply(
-            XMMatrixIdentity(),
-            XMMatrixTranslation(
-                _pPineGen->position.show_X(),
-                _pPineGen->position.show_Y(),
-                _pPineGen->position.show_Z()
-            )
-        )
-    );
-
-    _pPyramidGO.LookTo(_cam[_camSelected].GetPos());
-    _pPyramidGO.Update(t);
-
-    for (int i = 0; i < _cubeNum; i++) {
-        //_pyramidGOs[i].LookTo(_cam[_camSelected].GetPos());
-        // this line made other cubes not render!?
-        // too many objects to render?
-        _pyramidGOs[i]._pos.x = i * (float)_cubeNum * 0.5f;
-
-        _pyramidGOs[i].Update(t);
+        gObjs[i].Update(t);
     }
+}
 
-    _pCubeGO.Update(t);
-
-   //
-   // Animate multpile cubes
-   //
+//
+// Animate multpile cubes
+//
+void Application::UpdateCubes(float t) {
     float tx = 0.0f;
     float ty = 0.0f;
     float rotx = 0.0f;
@@ -1353,8 +1379,7 @@ void Application::Update()
             rotx = t;
             roty = i * t;
         }
-        
-        //_cubeGOs[i]._pos.x += t;
+
         _cubeGOs[i]._pos.x = tx;
         _cubeGOs[i]._pos.y = ty;
         _cubeGOs[i]._pos.z = -5.0f;
@@ -1364,12 +1389,48 @@ void Application::Update()
 
         _cubeGOs[i].Update(t);
     }
+}
 
-    // Update our cameras
-    if (_camSelected == 4) {
-        _cam[_camSelected].SetView(_cubes[1]);
-    }
-    _cam[_camSelected].Update();
+//
+// Animate solar system simulation
+//
+void Application::UpdateSolar(float t, XMFLOAT4X4* sun, XMFLOAT4X4* planet, XMFLOAT4X4* moon) {
+    XMMATRIX tSun, tPlanet, tMoon;             // define some matrices
+
+    // sun
+    tSun = XMMatrixIdentity();                  // reset sun to identity matrix
+
+    tSun = XMMatrixMultiply(                    // replace sun matrix...
+        XMMatrixRotationZ(t),                   // ... adding a rotation
+        tSun                                    // ... with this matrix, after...
+    );
+
+    XMStoreFloat4x4(
+        sun,
+        XMMatrixMultiply(                       // replace sun matrix...
+            XMMatrixRotationZ(t),               // ... adding a rotation
+            tSun
+        )
+    );                                          // set a cube to the sun matrix
+
+    // planet 1
+    tPlanet = XMMatrixIdentity();               // reset planet to identity matrix
+
+    tPlanet = XMMatrixMultiply(                 // replace planet matrix...
+        XMMatrixTranslation(5.0f, 0.0f, 0.0),   // ... adding translation by 4 units
+        tSun                                    // ... with this matrix, after...
+    );
+    XMStoreFloat4x4(planet, tPlanet);           // set a cube to the planet matrix
+
+    // moon 1
+    tMoon = XMMatrixIdentity();                 // reset moon to identity matrix
+
+    tMoon = XMMatrixMultiply(                   // replace moon matrix...
+        XMMatrixTranslation(4.0f, 0.0f, 0.0) *  // ... adding translation by 4 units
+        XMMatrixRotationZ(t),                   // ... adding a rotation
+        tPlanet                                 // ... with this matrix, after...
+    );
+    XMStoreFloat4x4(moon, tMoon);               // set a cube to the moon matrix
 }
 
 /// <summary>
@@ -1473,6 +1534,10 @@ void Application::Draw()
         _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
         _pImmediateContext->DrawIndexed(_pCubeIC, 0, 0);
+    }
+
+    for (int i = 0; i < _solarNum; i++) {
+        _solarGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
 
     // quad floor wireframe

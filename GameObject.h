@@ -27,8 +27,12 @@ public:
 	~GameObject();
 
 	void CopyObject(ID3D11Device& device, GameObject& target);
+	Vector3D GetRotation(XMFLOAT4X4 target);
 	void LookTo(Vector3D camUp, Vector3D camRight);
 	void LookTo(Vector3D target);
+
+	//Must be called AFTER Update()
+	void RotateTo(Vector3D target, Vector3D up);
 
 	// Model
 	

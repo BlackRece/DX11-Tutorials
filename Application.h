@@ -74,6 +74,10 @@ private:
 	GameObject					_pCubeGO;
 	GameObject*					_cubeGOs;
 
+	//mixed array of game objects
+	GameObject*					_solarGOs;
+	int							_solarNum;
+
 	//plane
 	PlaneGenerator*				_pQuadGen;
 	XMFLOAT4X4					_pPlane;
@@ -114,12 +118,12 @@ private:
 	ID3D11BlendState*			_Transparency;
 
 private:
-	HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
-	HRESULT InitDevice();
-	void Cleanup();
+
 	HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
 	HRESULT InitShadersAndInputLayout();
-	
+	HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
+	HRESULT InitDevice();
+
 	HRESULT InitPlane();
 	HRESULT InitVerticalPlane();
 	HRESULT InitCubeNormals();
@@ -127,6 +131,16 @@ private:
 
 	HRESULT InitCubeGO();
 	HRESULT InitPyramidGO();
+	
+	float GetDeltaTime();
+	void UpdateInput(float t);
+	void UpdateBillBoards(float t, GameObject* gObjs, int objCount);
+	void UpdateCubes(float t);
+	void UpdatePlanes();
+	void UpdatePyramids();
+	void UpdateSolar(float t, XMFLOAT4X4* sun, XMFLOAT4X4* planet, XMFLOAT4X4* moon);
+
+	void Cleanup();
 
 	UINT _WindowHeight;
 	UINT _WindowWidth;
