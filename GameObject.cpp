@@ -38,7 +38,7 @@ void GameObject::Draw(ID3D11DeviceContext* context, ID3D11Buffer* buffer, Consta
 
 	context->IASetVertexBuffers
 	(0, 1, &_model->_vertexBuffer, &_model->_stride, &_model->_offset);	// set vertex buffer
-	context->IASetIndexBuffer(_model->_indexBuffer, DXGI_FORMAT_R32_UINT, 0);		// set index buffer
+	context->IASetIndexBuffer(_model->_indexBuffer, DXGI_FORMAT_R16_UINT, 0);		// set index buffer
 
 	context->UpdateSubresource(buffer, 0, nullptr, &cbl, 0, 0);				// update device with new buffer data
 

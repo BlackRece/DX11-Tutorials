@@ -16,7 +16,7 @@ HRESULT ModelObject::CreateVertexBuffer(ID3D11Device& device) {
 	if (_mesh.Vertices.size() < 1) 
 		return E_NOT_SET;
 
-	_stride = sizeof(Vertex);
+	_stride = sizeof(_mesh.Vertices[0]);
 	_offset = 0;
 
 	D3D11_BUFFER_DESC bd;
@@ -41,7 +41,7 @@ HRESULT ModelObject::CreateIndexBuffer(ID3D11Device& device) {
 	ZeroMemory(&ibd, sizeof(ibd));
 
 	ibd.Usage = D3D11_USAGE_DEFAULT;
-	ibd.ByteWidth = _mesh.Indices.size() * sizeof(unsigned int);
+	ibd.ByteWidth = _mesh.Indices.size() * sizeof(_mesh.Indices[0]);
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibd.CPUAccessFlags = 0;
 
@@ -71,6 +71,16 @@ void ModelObject::ImportIndices(WORD* src, int srcSize, bool calcNorms) {
 	if (calcNorms) CalcNormals(_mesh.Vertices, _mesh.Indices);
 }
 
+void ModelObject::LoadOBJ(char* filename, ID3D11Device* _pd3dDevice, bool invertTexCoords) {
+	MeshData obj = OBJLoader::Load(filename, _pd3dDevice, invertTexCoords);
+	_vertexBuffer = obj.VertexBuffer;			//VertexBuffer;
+	_indexBuffer = obj.IndexBuffer;				//IndexBuffer;
+	_indexCount = obj.IndexCount;				//IndexCount;
+
+	_stride = obj.VBStride;						//vertex buffer stride
+	_offset = obj.VBOffset;						//vertex buffer offset
+}
+
 /// <summary>
 /// Vertex Normal Averaging
 /// </summary>
@@ -78,7 +88,7 @@ void ModelObject::ImportIndices(WORD* src, int srcSize, bool calcNorms) {
 /// Each vertex has a position component (pos) and a normal component (normal).</param>
 /// <param name="inds">An array of indices (inds).</param>
 /// <returns></returns>
-void ModelObject::CalcNormals(std::vector<Vertex> verts, std::vector<unsigned int> inds) {
+void ModelObject::CalcNormals(std::vector<Vertex> verts, std::vector<unsigned short> inds) {
 	int faces = inds.size() / 3;
 
 	for (int i = 0; i < faces; i++) {

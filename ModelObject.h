@@ -1,6 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 #include "Structures.h"
+#include "OBJLoader.h"
 
 using namespace DirectX;
 
@@ -28,11 +29,12 @@ public:
 	void ImportVertices(VertexTextures* src, int srcSize);
 	void ImportIndices(WORD* src, int srcSize, bool calcNorms = true);
 
+	void LoadOBJ(char* filename, ID3D11Device* _pd3dDevice, bool invertTexCoords = true);
 
 private:
 	void CalcNormals(
 		std::vector<Vertex> verts,
-		std::vector<unsigned int> inds
+		std::vector<unsigned short> inds
 	);
 
 	void CleanUp();

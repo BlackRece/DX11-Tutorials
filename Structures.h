@@ -90,5 +90,5 @@ struct Vertex {
 
 struct MeshArray {
 	std::vector<Vertex> Vertices;
-	std::vector<unsigned int> Indices;
+	std::vector<unsigned short> Indices;
 };

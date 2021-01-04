@@ -94,7 +94,7 @@ private:
 	//OBJ loader
 	MeshData					objMeshDataA;
 	MeshData					objMeshDataB;
-	MeshData					objContainerMesh;
+	GameObject					objContainerMesh;
 
 	//randomiser util
 	std::random_device			randDevice;	

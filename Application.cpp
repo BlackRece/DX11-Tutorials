@@ -93,6 +93,10 @@ Application::Application()
 
     _gTime = 0.0f;
 
+    //gameObject with loaded model
+    objContainerMesh._pos = Vector3D(3.0f, 3.0f, 3.0f);
+    objContainerMesh._scale = Vector3D(3.0f, 3.0f, 3.0f);
+
     //lighting
     _pLight = Lighting();
     _pLight.ambientLight = XMFLOAT4(0.2f, 0.2f, 0.2f, 0.0f);
@@ -779,7 +783,9 @@ HRESULT Application::InitDevice()
     objMeshDataB = OBJLoader::Load("Models/Blender/donut.obj", _pd3dDevice, false);
 
     //Cosmo??
-    objContainerMesh = OBJLoader::Load("Models/Cosmo/OpticContainer.obj", _pd3dDevice, false);
+    //objContainerMesh = OBJLoader::Load("Models/Cosmo/OpticContainer.obj", _pd3dDevice, false);
+    objContainerMesh._model->LoadOBJ("Models/Cosmo/OpticContainer.obj", _pd3dDevice, false);
+    objContainerMesh.CreateTexture(*_pd3dDevice, "Models/Cosmo/OpticContainer.dds");
     
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -823,7 +829,7 @@ HRESULT Application::InitDevice()
     // Load crate texture from file
     CreateDDSTextureFromFile(_pd3dDevice, L"Textures/Crate_COLOR.dds", nullptr, &_pTextureRV);
     // Load cosmo texture from file
-    CreateDDSTextureFromFile(_pd3dDevice, L"Models/Cosmo/OpticContainer.dds", nullptr, &_pContainerRV);
+    //CreateDDSTextureFromFile(_pd3dDevice, L"Models/Cosmo/OpticContainer.dds", nullptr, &_pContainerRV);
     // Load pine tree texture from file
     CreateDDSTextureFromFile(_pd3dDevice, L"Textures/Pine Tree.dds", nullptr, &_pPineRV);
 
@@ -982,6 +988,9 @@ void Application::Update() {
     _pCubeGO.Update(t);
 
     UpdateCubes(t);
+
+    // Update Loaded Models
+    objContainerMesh.Update(t);
 
     // Update our cameras
     if (_camSelected == 4) {
@@ -1240,7 +1249,7 @@ void Application::Draw()
     * whereas <Window.h> UINT = 2 bytes = 16bits (aka SHORT!!)
     * fucking Micro$haft!
     */
-    _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R32_UINT, 0);
+    _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R16_UINT, 0);
     _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
     _pImmediateContext->DrawIndexed(_pQuadGen->_indexCount, 0, 0);
@@ -1281,6 +1290,7 @@ void Application::Draw()
     }
 
     /* draw transparent objects with no back faces here */
+    /*
     cbl.mWorld = XMMatrixTranspose(
         XMMatrixMultiply(XMMatrixIdentity(), XMMatrixTranslation(0.0f, -1.0f, -5.0f))
     );
@@ -1289,13 +1299,15 @@ void Application::Draw()
     _pImmediateContext->IASetIndexBuffer(objContainerMesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
     _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
     _pImmediateContext->DrawIndexed(objContainerMesh.IndexCount, 0, 0);
+    */
+    objContainerMesh.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     // pine plane
     cbl.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&_pPine));
 
     _pImmediateContext->PSSetShaderResources(0, 1, &_pPineRV); //set texture
     _pImmediateContext->IASetVertexBuffers(0, 1, &_pPineVB, &stride, &offset);
-    _pImmediateContext->IASetIndexBuffer(_pPineIB, DXGI_FORMAT_R32_UINT, 0);
+    _pImmediateContext->IASetIndexBuffer(_pPineIB, DXGI_FORMAT_R16_UINT, 0);
     _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
 
     _pImmediateContext->DrawIndexed(_pPineGen->_indexCount, 0, 0);
