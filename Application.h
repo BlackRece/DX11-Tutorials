@@ -69,10 +69,9 @@ private:
 	
 	float						_gTime;
 
+	// [ D1, D2, D3 ]
 	//lighting
 	Lighting					_pLight;
-
-	//
 
 	//OBJ loader
 	GameObject					_goCosmo;
@@ -82,8 +81,6 @@ private:
 	//randomiser util
 	std::random_device			randDevice;	
 	std::normal_distribution<float> nd;
-
-	
 
 private:
 

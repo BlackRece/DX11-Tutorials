@@ -83,6 +83,7 @@ struct PS_INPUT {
 //VS_OUTPUT VS(float4 Pos : POSITION, float4 Color : COLOR)
 VS_OUTPUT VS(VS_INPUT input)
 {
+    // [ D1, D2, D3, F2 ]
     VS_OUTPUT output = (VS_OUTPUT)0;
 
     output.Pos = mul( input.Pos, World );

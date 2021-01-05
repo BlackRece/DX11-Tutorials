@@ -98,14 +98,14 @@ Application::Application()
     _goDonut._scale = Vector3D(3.0f, 3.0f, 3.0f);
 
     //lighting
-    // [ D3 ]
+    // [ D1, D2, D3 ]
     _pLight = Lighting();
     _pLight.ambientLight = XMFLOAT4(0.2f, 0.2f, 0.2f, 0.0f);
     _pLight.ambientMaterial = XMFLOAT4(0.2f, 0.2f, 0.2f, 0.0f);
 
     _pLight.SpecularLight = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
     _pLight.SpecularMaterial = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-    _pLight.SpecularPower = 10.0f;
+    _pLight.SpecularPower = 5.0f;
 
     //camera
     _camNum = 6;
@@ -145,6 +145,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow) {
 	XMStoreFloat4x4(&_world, XMMatrixIdentity());
 
     // Initialize the view matrix
+    // [ L1, L2 ]
     //default cam
     _cam[0] = Camera(
         Vector3D(0.0f, 0.0f, -10.0f),
@@ -155,6 +156,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow) {
     );
     _cam[0].UseWayPoints(false);
 
+    // [ H1, H2 ]
     //top cam
     _cam[1] = Camera(
         Vector3D(0.0f, -10.0f, 0.0f),
@@ -165,6 +167,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow) {
     );
     _cam[1].UseWayPoints(false);
 
+    // [ H1, H2 ]
     //right cam
     _cam[2] = Camera(
         Vector3D(-10.0f, 0.0f, 0.0f),
@@ -175,6 +178,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow) {
     );
     _cam[2].UseWayPoints(false);
 
+    // [ H1, H2 ]
     //far cam
     _cam[3] = Camera(
         Vector3D(0.0f, 0.0f, -20.0f),
@@ -188,6 +192,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow) {
     _cam[3].SetView();
     _cam[3].UseWayPoints(false);
 
+    // [ L1 ]
     //chase cam
     _cam[4] = Camera(
         Vector3D(0.0f, 0.0f, -20.0f),
@@ -805,6 +810,7 @@ void Application::Update() {
     //update constant buffer
     _gTime = t;
 
+    // [ E1, E2, E3 ]
     UpdateInput(t);
     
     UpdateSolar(t, 
@@ -862,6 +868,7 @@ void Application::UpdateInput(float t) {
         _camSelected = 5;
     }
 
+    // [ E1, E2 ]
     // camera movement
     if (GetKeyState('W') & 0x8000) {
         _cam[_camSelected].MoveForward(t);
@@ -1037,7 +1044,7 @@ void Application::Draw()
     // use our camera class
     cbl.mViewProj = XMMatrixTranspose(_cam[_camSelected].GetViewProj());
     
-    // [ D3 ]
+    // [ D1, D2, D3 ]
     //lighting
     //ambient
     cbl.mAmbient = XMFLoat4Multiply(_pLight.ambientMaterial, _pLight.ambientMaterial);

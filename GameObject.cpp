@@ -11,6 +11,7 @@ GameObject::~GameObject() {
 }
 
 void GameObject::CreateTexture(ID3D11Device& device, string filepath) {
+	// [ F1 ]
 	HRESULT hr = CreateDDSTextureFromFile(&device, GetWC(filepath) , nullptr, &_textureRV);
 	if (FAILED(hr))
 		return;
@@ -19,6 +20,7 @@ void GameObject::CreateTexture(ID3D11Device& device, string filepath) {
 void GameObject::Draw(ID3D11DeviceContext* context, ID3D11Buffer* buffer, ConstantBufferLite& cbl) {
 	cbl.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&_matrix));				// set object matrix
 
+	// [ F1 ]
 	if(_textureRV != nullptr)
 		context->PSSetShaderResources(0, 1, &_textureRV);						// set texture
 

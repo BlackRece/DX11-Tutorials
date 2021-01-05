@@ -177,6 +177,7 @@ void Camera::MoveForward(float forward) {
 
 void Camera::MoveSidewards(float sideward) {
     if (!_useLookTo) {
+        // [ E3 ]
         RotateY(sideward * _rotateSpeed);
     } else {
         Translate(sideward * _rotateSpeed, 0.0f, 0.0f);
