@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" GroupingSetting="Access" MembersFormat="NameAndType">
+  <Class Name="Application">
+    <Position X="0.5" Y="0.5" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>gSSIgCJACNaMAxkAIAEQAAQICEACMIcCCCxCAGZGQUM=</HashCode>
+      <FileName>Application.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_cam" />
+      <Field Name="_cubeGOs" />
+      <Field Name="_goCosmo" />
+      <Field Name="_goDonut" />
+      <Field Name="_goHPlane" />
+      <Field Name="_goTorusKnot" />
+      <Field Name="_goVPlane" />
+      <Field Name="_pCubeGO" />
+      <Field Name="_pPyramidGO" />
+      <Field Name="_pyramidGOs" />
+      <Field Name="_solarGOs" />
+      <Field Name="_pLight" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Camera">
+    <Position X="10" Y="0.5" Width="3" />
+    <NestedTypes>
+      <Struct Name="Camera::WayPoint" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Camera.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>YIQSWSAQAACAQTwAwgAAIAoIkgEMAwQQAWgFoIIAQQA=</HashCode>
+      <FileName>Camera.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GameObject">
+    <Position X="6" Y="13.75" Width="3" />
+    <TypeIdentifier>
+      <HashCode>ABSABCAAAICAAgQAAgAAAQAAAAAAAAAAAAAQEUIAACA=</HashCode>
+      <FileName>GameObject.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_angle" />
+      <Field Name="_model" />
+      <Field Name="_pos" />
+      <Field Name="_scale" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Lighting">
+    <Position X="5.5" Y="3" Width="3" />
+    <TypeIdentifier>
+      <HashCode>QEQAAAAAAAAAAEAAAAQAAAAYAAEAAAAAAIAAAAQAAAA=</HashCode>
+      <FileName>Lighting.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ModelObject">
+    <Position X="10" Y="12.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgEAAAAAAIAAAAIAAAAAEggAADAoAAAQEIAECAACA=</HashCode>
+      <FileName>ModelObject.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_mesh" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="PlaneGenerator">
+    <Position X="13.75" Y="14.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AhAAAEEAAAAAAAAAAAAAAgBQAAACAYAAAAAIAAABAAA=</HashCode>
+      <FileName>PlaneGenerator.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Vector3D">
+    <Position X="20.75" Y="17.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAgAAAACAAAAAAIAYAAAEgQAAAAAUBgEQAAIAA=</HashCode>
+      <FileName>Vector3D.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="ConstantBufferLite">
+    <Position X="5.5" Y="7.75" Width="3" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAQAAAABAAAAAAIAAAAAABAAAAAAAgAQAAAg=</HashCode>
+      <FileName>Structures.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="Vertex">
+    <Position X="17" Y="12.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAABAAAgAAAAAAAAAAAIAAAAAAAAAABAAAA=</HashCode>
+      <FileName>Structures.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="MeshArray">
+    <Position X="13.75" Y="12.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAA=</HashCode>
+      <FileName>Structures.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

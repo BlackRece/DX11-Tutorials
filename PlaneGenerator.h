@@ -3,14 +3,10 @@
 
 class PlaneGenerator {
 public:
-	Vertex _plane;
-	MeshArray _meshData;
 
 	unsigned int _faceCount;
 	unsigned int _vertexCount, _indexCount;
 	unsigned int _row, _col;
-
-	Vector3D position;
 
 	PlaneGenerator() :
 		_faceCount(0), _row(0), _col(0),
