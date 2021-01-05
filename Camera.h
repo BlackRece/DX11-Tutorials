@@ -72,6 +72,8 @@ public:
 	Vector3D GetLookTo();
 	Vector3D GetPos();
 	XMMATRIX GetProjection();
+	Vector3D GetRotation();
+	Vector3D GetTranslation();
 	Vector3D GetUp();
 	XMFLOAT4X4 GetView4x4();
 	XMMATRIX GetView();

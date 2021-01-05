@@ -33,9 +33,6 @@ private:
 	ID3D11SamplerState*			_pSamplerLinear;	//Texturing Sampler
 	ID3D11BlendState*			_Transparency;		//transparency
 
-
-	ID3D11Buffer*				_pVertexBuffer;
-	ID3D11Buffer*				_pIndexBuffer;
 	XMFLOAT4X4					_world;
 	XMFLOAT4X4					_view;
 	XMFLOAT4X4					_projection;
@@ -43,8 +40,6 @@ private:
 	Camera*						_cam;				// array of cameras
 	int							_camNum;			// number of cameras
 	int							_camSelected;		// index of selected camera
-
-	UINT						_pIndexCount, _pVertexCount;
 
 	ID3D11DepthStencilView*		_depthStencilView;
 	ID3D11Texture2D*			_depthStencilBuffer;
@@ -106,8 +101,9 @@ private:
 	void UpdateInput(float t);
 	void UpdateBillBoards(float t, GameObject* gObjs, int objCount);
 	void UpdateCubes(float t);
-	void UpdatePlanes();
-	void UpdatePyramids();
+	void UpdateModels(float t);
+	void UpdatePlanes(float t);
+	void UpdatePyramids(float t);
 	void UpdateSolar(float t, XMFLOAT4X4* sun, XMFLOAT4X4* planet, XMFLOAT4X4* moon);
 
 	void Cleanup();

@@ -30,7 +30,7 @@ public:
 
 	static void CalcNormals(
 		std::vector<Vertex> verts,
-		std::vector<unsigned int> inds
+		std::vector<unsigned short> inds
 	);
 
 	void TextureCube(std::vector<unsigned int> inds);

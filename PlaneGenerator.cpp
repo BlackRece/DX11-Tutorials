@@ -135,7 +135,7 @@ void PlaneGenerator::CreateIndices(MeshArray& meshData) {
 	meshData.Indices.resize(_faceCount * 3); // 3 indices per face
 
 	//Dyslexic Markers
-	unsigned int TL, TR, BL, BR;
+	unsigned short TL, TR, BL, BR;
 
 	// Iterate over each quad and compute indices.
 	unsigned int k = 0;
@@ -170,15 +170,15 @@ void PlaneGenerator::CreateIndices(MeshArray& meshData) {
 /// <returns></returns>
 void PlaneGenerator::CalcNormals(
 	std::vector<Vertex> verts,
-	std::vector<unsigned int> inds
+	std::vector<unsigned short> inds
 ) {
 	int faces = inds.size() / 3;
 
 	for (int i = 0; i < faces; i++) {
 		//indices of the ith triangle
-		unsigned int i0 = inds[i * 3 + 0];
-		unsigned int i1 = inds[i * 3 + 1];
-		unsigned int i2 = inds[i * 3 + 2];
+		unsigned short i0 = inds[i * 3 + 0];
+		unsigned short i1 = inds[i * 3 + 1];
+		unsigned short i2 = inds[i * 3 + 2];
 
 		//vertices of ith triangle
 		Vector3D v0 = verts[i0].Position;

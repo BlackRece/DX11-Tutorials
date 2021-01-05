@@ -41,12 +41,7 @@ Application::Application()
 	_pVertexShader = nullptr;
 	_pPixelShader = nullptr;
 	_pVertexLayout = nullptr;
-	_pVertexBuffer = nullptr;
-	_pIndexBuffer = nullptr;
 	_pConstantBuffer = nullptr;
-
-    _pVertexCount = 0;
-    _pIndexCount = 0;
 
     _WindowHeight = 0;
     _WindowWidth = 0;
@@ -57,44 +52,53 @@ Application::Application()
     _noCulling = nullptr;
     _enableCulling = false;
 
+    // [ B1 ]
     //cube
     _cubeNum = 5;       // number of cubes
 
     _pCubeGO._pos = Vector3D(0.0f, 3.0f, 0.0f);
     _pCubeGO._scale = Vector3D(1.0f, 1.0f, 1.0f);
-    _cubeGOs = new GameObject[_cubeNum];
+    _cubeGOs = new GameObject[_cubeNum];                
 
+    // [ B1 ]
     //pyramid
     _pPyramidGO._pos = Vector3D(0.0f, -3.0f, -3.0f);
     _pPyramidGO._scale = Vector3D(1.0f, 1.0f, 1.0f);
     _pyramidGOs = new GameObject[_cubeNum];
 
+    // [ B1 ]
     //solar system example
     _solarNum = 3;
     _solarGOs = new GameObject[_solarNum];
 
+    // [ B1 ]
     //gameObjects with planes
     //horizontal plane
     _goHPlane._pos = Vector3D(0.0f, -10.0f, 7.0f);
     _goHPlane._scale = Vector3D(1.0f, 1.0f, 1.0f);
 
+    // [ B1 ]
     //vertical plane
     _goVPlane._pos = Vector3D(0.0f, 0.0f, 12.5f);
     _goVPlane._scale = Vector3D(1.0f, 1.0f, 1.0f);
 
     _gTime = 0.0f;
 
+    // [ B1 ]
     //gameObjects with loaded models
     _goCosmo._pos = Vector3D(3.0f, 3.0f, 3.0f);
     _goCosmo._scale = Vector3D(3.0f, 3.0f, 3.0f);
 
+    // [ B1 ]
     _goTorusKnot._pos = Vector3D(3.0f, -3.0f, 3.0f);
     _goTorusKnot._scale = Vector3D(3.0f, 3.0f, 3.0f);
 
+    // [ B1 ]
     _goDonut._pos = Vector3D(-3.0f, -3.0f, 3.0f);
     _goDonut._scale = Vector3D(3.0f, 3.0f, 3.0f);
 
     //lighting
+    // [ D3 ]
     _pLight = Lighting();
     _pLight.ambientLight = XMFLOAT4(0.2f, 0.2f, 0.2f, 0.0f);
     _pLight.ambientMaterial = XMFLOAT4(0.2f, 0.2f, 0.2f, 0.0f);
@@ -115,13 +119,11 @@ Application::Application()
     _pSamplerLinear = nullptr;
 }
 
-Application::~Application()
-{
+Application::~Application() {
 	Cleanup();
 }
 
-HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
-{
+HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow) {
     if (FAILED(InitWindow(hInstance, nCmdShow)))
 	{
         return E_FAIL;
@@ -139,16 +141,10 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         return E_FAIL;
     }
 
-	// Initialize the world matrix
+	// Initialize the world origin matrix 
 	XMStoreFloat4x4(&_world, XMMatrixIdentity());
 
     // Initialize the view matrix
-    /*
-    _cam.Eye = XMVectorSet(0.0f, 0.0f, -10.0f, 0.0f);    //cam pos
-    _cam.At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);      //cam dir
-    _cam.Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);      //cam up
-    */
-    // use new camera class
     //default cam
     _cam[0] = Camera(
         Vector3D(0.0f, 0.0f, -10.0f),
@@ -613,8 +609,7 @@ HRESULT Application::InitDevice()
         return hr;
 
     // Setup the depth buffer
-    //ID3D11DepthStencilView* _depthStencilView;
-    //ID3D11Texture2D* _depthStencilBuffer;
+    // [ C4 ]
     D3D11_TEXTURE2D_DESC depthStencilDesc;
 
     depthStencilDesc.Width = _WindowWidth;
@@ -767,8 +762,6 @@ void Application::Cleanup()
     if (_pImmediateContext) _pImmediateContext->ClearState();
 
     if (_pConstantBuffer) _pConstantBuffer->Release();
-    if (_pVertexBuffer) _pVertexBuffer->Release();
-    if (_pIndexBuffer) _pIndexBuffer->Release();
     if (_pVertexLayout) _pVertexLayout->Release();
     if (_pVertexShader) _pVertexShader->Release();
     if (_pPixelShader) _pPixelShader->Release();
@@ -820,34 +813,15 @@ void Application::Update() {
         &_solarGOs[2]._matrix       // moon
     );
 
-    //
-    // Update Planes GameObjects
-    //
-    _goHPlane.Update(t);
-    _goVPlane.Update(t);
-
-    //
-    // Animate the pyramids
-    //
-    _pPyramidGO._scale = Vector3D(4.0f, 4.0f, 4.0f);
-    _pPyramidGO._angle = Vector3D(0.0f, -t, -t);
-    _pPyramidGO._pos.z = 10.0f;
-    
-    _pPyramidGO.Update(t);
+    UpdatePlanes(t);
     
     UpdateBillBoards(t, _pyramidGOs, _cubeNum);
 
-    //
-    // Animate the cubes
-    //
-    _pCubeGO.Update(t);
+    UpdatePyramids(t);
 
     UpdateCubes(t);
 
-    // Update Loaded Models
-    _goCosmo.Update(t);
-    _goDonut.Update(t);
-    _goTorusKnot.Update(t);
+    UpdateModels(t);
 
     // Update our cameras
     if (_camSelected == 4) {
@@ -921,14 +895,15 @@ void Application::UpdateBillBoards(float t, GameObject* gObjs, int objCount) {
     for (int i = 0; i < objCount; i++) {
         gObjs[i]._pos.x = i * (float)objCount * 0.5f;
 
-        gObjs[i].LookTo(_cam[_camSelected].GetPos());
+        //gObjs[i].LookTo(_cam[_camSelected].GetTranslation());
+        gObjs[i]._angle.y = -(_cam[_camSelected].GetRotation().y);
 
         gObjs[i].Update(t);
     }
 }
 
 //
-// Animate multpile cubes
+// Animate the cubes
 //
 void Application::UpdateCubes(float t) {
     float tx = 0.0f;
@@ -936,6 +911,11 @@ void Application::UpdateCubes(float t) {
     float rotx = 0.0f;
     float roty = 0.0f;
     Vector3D tmp;
+
+    //single cube
+    _pCubeGO.Update(t);
+
+    //multiple cubes
     for (int i = 0; i < _cubeNum; i++) {
         if (i % 2 == 0) {
             ty = float((i * 1.5f) - (_cubeNum / 2.0f));
@@ -957,6 +937,33 @@ void Application::UpdateCubes(float t) {
 
         _cubeGOs[i].Update(t);
     }
+}
+
+//
+// Update Loaded Models
+//
+void Application::UpdateModels(float t) {
+    _goCosmo.Update(t);
+    _goDonut.Update(t);
+    _goTorusKnot.Update(t);
+}
+
+//
+// Update Planes GameObjects
+//
+void Application::UpdatePlanes(float t) {
+    _goHPlane.Update(t);
+    _goVPlane.Update(t);
+}
+
+//
+// Animate the pyramids
+//
+void Application::UpdatePyramids(float t) {
+    _pPyramidGO._angle = Vector3D(0.0f, -t, -t);
+    _pPyramidGO._pos.z = 10.0f;
+
+    _pPyramidGO.Update(t);
 }
 
 //
@@ -1011,6 +1018,7 @@ void Application::Draw()
     //
     float ClearColor[4] = {0.0f, 0.125f, 0.3f, 1.0f}; // red,green,blue,alpha
     _pImmediateContext->ClearRenderTargetView(_pRenderTargetView, ClearColor);
+    // [ C4 ]
     _pImmediateContext->ClearDepthStencilView(
         _depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0
     );
@@ -1029,6 +1037,7 @@ void Application::Draw()
     // use our camera class
     cbl.mViewProj = XMMatrixTranspose(_cam[_camSelected].GetViewProj());
     
+    // [ D3 ]
     //lighting
     //ambient
     cbl.mAmbient = XMFLoat4Multiply(_pLight.ambientMaterial, _pLight.ambientMaterial);
@@ -1063,6 +1072,7 @@ void Application::Draw()
     float blendFactor[] = { 0.75f, 0.75f, 0.75f, 1.0f };
     
     // Toggle wireframe
+    // [ C3 ]
     if (_enableWireFrame) {
         _pImmediateContext->RSSetState(_wireFrame);
     } else {
@@ -1080,11 +1090,13 @@ void Application::Draw()
     //
     // Renders a pyramid
     //
+    // [ C1 ]
     _pPyramidGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     //
     // Render pyramid array
     //
+    // [ C1 ]
     for (int i = 0; i < _cubeNum; i++) {
         _pyramidGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
@@ -1092,21 +1104,13 @@ void Application::Draw()
     //
     // Render solar system simulation
     //
+    // [ C1 ]
     for (int i = 0; i < _solarNum; i++) {
         _solarGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
 
     // quad floor
-    /*
-    cbl.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&_pPlane));
-
-    _pImmediateContext->IASetVertexBuffers(0, 1, &_pQuadVB, &stride, &offset);
-    
-    _pImmediateContext->IASetIndexBuffer(_pQuadIB, DXGI_FORMAT_R16_UINT, 0);
-    _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
-
-    _pImmediateContext->DrawIndexed(_pQuadGen->_indexCount, 0, 0);
-    */
+    // [ C2 ]
     _goHPlane.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     //
@@ -1120,7 +1124,9 @@ void Application::Draw()
     //
     // Draw Loaded Objects
     //
+    // [ C1 ]
     _goDonut.Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    // [ C1 ]
     _goTorusKnot.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     // Toggle backface culling
@@ -1129,16 +1135,20 @@ void Application::Draw()
     }
 
     /* draw transparent objects with no back faces here */
+    // [ C1 ]
     _goCosmo.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     // pine plane
+    // [ C1 ]
     _goVPlane.Draw(_pImmediateContext, _pConstantBuffer, cbl);
     
     //
     // Render cube array
     //
+    // [ C1 ]
     _pCubeGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
+    // [ C1 ]
     for (int i = 0; i < _cubeNum; i++) {
         _cubeGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }

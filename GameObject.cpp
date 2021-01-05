@@ -10,20 +10,6 @@ GameObject::~GameObject() {
 	CleanUp();
 }
 
-void GameObject::CopyObject(ID3D11Device& device, GameObject& target) {
-	// only need to copy a reference to the ModelObject
-	/*
-	targetPos._mesh = this->_mesh;
-	targetPos._vertexCount = this->_vertexCount;
-	targetPos._indexCount = this->_indexCount;
-
-	targetPos.CalcNormals(targetPos._mesh.Vertices, targetPos._mesh.Indices);
-
-	targetPos.CreateVertexBuffer(device);
-	targetPos.CreateIndexBuffer(device);
-	*/
-}
-
 void GameObject::CreateTexture(ID3D11Device& device, string filepath) {
 	HRESULT hr = CreateDDSTextureFromFile(&device, GetWC(filepath) , nullptr, &_textureRV);
 	if (FAILED(hr))
@@ -55,7 +41,7 @@ void GameObject::Update(float deltaTime) {
 	);
 }
 
-Vector3D GetRotation(XMFLOAT4X4 target) {
+Vector3D GameObject::GetRotation(XMFLOAT4X4 target) {
 	Vector3D angle;
 
 	if ((target._11 == 1.0f)||(target._11 == -1.0f)) {
@@ -90,7 +76,7 @@ void GameObject::LookTo(Vector3D target) {
 	float dot = _pos.dot_product(target);
 	float mag = _pos.magnitude() * target.magnitude();
 	float angle = dot / mag;
-	_angle.y = (acosf(angle) * (180 / XM_PI))/16;
+	_angle.y = (acosf(angle));// *(180 / XM_PI));// / 16;
 }
 
 void GameObject::RotateTo(Vector3D targetPos, Vector3D targetUp) {

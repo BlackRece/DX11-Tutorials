@@ -12,6 +12,7 @@ ModelObject::~ModelObject() {
 	CleanUp();
 }
 
+// [ B3 ]
 HRESULT ModelObject::CreateVertexBuffer(ID3D11Device& device) {
 	if (_mesh.Vertices.size() < 1) 
 		return E_NOT_SET;
@@ -33,6 +34,7 @@ HRESULT ModelObject::CreateVertexBuffer(ID3D11Device& device) {
 	return device.CreateBuffer(&bd, &InitData, &_vertexBuffer);
 }
 
+// [ B3 ]
 HRESULT ModelObject::CreateIndexBuffer(ID3D11Device& device) {
 	if (_mesh.Indices.size() < 1) 
 		return E_NOT_SET;
@@ -51,6 +53,7 @@ HRESULT ModelObject::CreateIndexBuffer(ID3D11Device& device) {
 	return device.CreateBuffer(&ibd, &iInitData, &_indexBuffer);
 }
 
+// [ B2, B3 ]
 HRESULT ModelObject::CreatePlane(ID3D11Device& device, Vector3D dims,
 	int rows, int cols, bool isHorizontal) {
 	HRESULT hr = S_OK;
@@ -73,6 +76,7 @@ HRESULT ModelObject::CreatePlane(ID3D11Device& device, Vector3D dims,
 	return hr;
 }
 
+// [ B3 ]
 void ModelObject::ImportVertices(VertexTextures* src, int srcSize) {
 	if (src == nullptr || srcSize < 1) return;
 
@@ -82,6 +86,7 @@ void ModelObject::ImportVertices(VertexTextures* src, int srcSize) {
 		_mesh.Vertices.push_back(Vertex(src[i].Pos, src[i].TexC));
 }
 
+// [ B3 ]
 void ModelObject::ImportIndices(WORD* src, int srcSize, bool calcNorms) {
 	if (src == nullptr || srcSize < 1) return;
 
@@ -93,6 +98,7 @@ void ModelObject::ImportIndices(WORD* src, int srcSize, bool calcNorms) {
 	if (calcNorms) CalcNormals(_mesh.Vertices, _mesh.Indices);
 }
 
+// [ B2 ]
 void ModelObject::LoadOBJ(char* filename, ID3D11Device* _pd3dDevice, bool invertTexCoords) {
 	MeshData obj = OBJLoader::Load(filename, _pd3dDevice, invertTexCoords);
 	_vertexBuffer = obj.VertexBuffer;			//VertexBuffer;

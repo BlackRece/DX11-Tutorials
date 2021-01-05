@@ -63,6 +63,47 @@ XMMATRIX Camera::GetProjection() {
     return XMLoadFloat4x4(&_projection);
 }
 
+Vector3D Camera::GetRotation() {
+    Vector3D angle;
+    XMVECTOR scale, quat, trans, axis;
+    float radians;
+
+    if (XMMatrixDecompose(&scale, &quat, &trans, XMLoadFloat4x4(&_view))) {
+        XMQuaternionToAxisAngle(&axis, &radians, quat);
+        angle = Vector3D(
+            XMVectorGetX(axis) * radians,
+            XMVectorGetY(axis) * radians,
+            XMVectorGetZ(axis) * radians
+        );
+    }
+    /*
+    if ((_view._11 == 1.0f) || (_view._11 == -1.0f)) {
+        angle.x = atan2f(_view._13, _view._34);
+    } else {
+        angle.x = atan2f(-_view._31, _view._11);
+        angle.y = asin(_view._21);
+        angle.z = atan2f(-_view._23, _view._22);
+    }
+    */
+
+    return angle;
+}
+
+Vector3D Camera::GetTranslation() {
+    Vector3D pos;
+    XMVECTOR scale, quat, trans;
+
+    if (XMMatrixDecompose(&scale, &quat, &trans, XMLoadFloat4x4(&_view))) {
+        pos = Vector3D(
+            XMVectorGetX(trans),
+            XMVectorGetY(trans),
+            XMVectorGetZ(trans)
+        );
+    }
+
+    return pos;
+}
+
 /*
 //Returns the Yaw, Pitch, and Roll components of this matrix. This
 //function only works with pure rotation matrices.
