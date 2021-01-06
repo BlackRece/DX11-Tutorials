@@ -33,8 +33,8 @@ private:
 
 	float _farDepth;
 	float _nearDepth;
-	float _windowWidth;
-	float _windowHeight;
+	int _windowWidth;
+	int _windowHeight;
 
 	// camera movement speeds
 	float _rotateSpeed;
@@ -52,7 +52,7 @@ public:
 	Camera();
 	Camera(
 		Vector3D position, Vector3D at, Vector3D up,
-		float windowWidth, float windowHeight,
+		int windowWidth, int windowHeight,
 		float nearDepth, float farDepth,
 		float rotateSpeed = 0.001f, float translateSpeed = 0.001f);
 	Camera(
@@ -96,7 +96,7 @@ public:
 	// A function to reshape the camera volume if the window is 
 	// resized.
 	void Reshape(
-		float windowWidth, float windowHeight, 
+		int windowWidth, int windowHeight, 
 		float nearDepth, float farDepth
 	);
 

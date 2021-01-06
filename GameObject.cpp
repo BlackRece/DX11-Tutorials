@@ -4,6 +4,9 @@
 GameObject::GameObject() {
 	_textureRV = nullptr;
 	_model = new ModelObject();
+
+	_matrix = {};
+	_wc = nullptr;
 }
 
 GameObject::~GameObject() {
@@ -34,6 +37,9 @@ void GameObject::Draw(ID3D11DeviceContext* context, ID3D11Buffer* buffer, Consta
 }
 
 void GameObject::Update(float deltaTime) {
+	float t = deltaTime;
+	t++;
+
 	XMStoreFloat4x4(&_matrix,
 		XMMatrixMultiply(XMMatrixIdentity(),
 			XMMatrixScaling(_scale.x, _scale.y, _scale.z) *

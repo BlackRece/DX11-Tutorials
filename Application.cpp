@@ -109,9 +109,11 @@ Application::Application()
     _pLight.SpecularPower = 5.0f;
 
     //camera
+    /*
     _camNum = 6;
     _cam = new Camera[_camNum];
     _camSelected = 0;
+    */
 
     //setup random engine for cubes
     std::mt19937 rnd(randDevice());
@@ -261,7 +263,7 @@ HRESULT Application::InitCameras() {
         }
 
         _cam[i] = Camera(eye, at, up,
-            _WindowWidth, _WindowHeight,
+            (int)_WindowWidth, (int)_WindowHeight,
             jsonCam["cameras"][i]["near"],
             jsonCam["cameras"][i]["far"]
         );
@@ -280,7 +282,7 @@ HRESULT Application::InitCameras() {
 
         if (jsonCam["cameras"][i].contains("UseWayPoints")) {
             _cam[i].UseWayPoints(true);
-            for (int j = 0; j < jsonCam["cameras"][i]["waypoints"].size(); j++) {
+            for (int j = 0; j < (int)jsonCam["cameras"][i]["waypoints"].size(); j++) {
                 _cam[i].AddWayPoint(Vector3D(
                     jsonCam["cameras"][i]["waypoints"][j][0].get<float>(),
                     jsonCam["cameras"][i]["waypoints"][j][1].get<float>(),
@@ -491,7 +493,7 @@ HRESULT Application::InitPyramidGO() {
 HRESULT Application::InitWindow(HINSTANCE hInstance, int nCmdShow)
 {
     // Register class
-    WNDCLASSEX wcex;
+    WNDCLASSEX wcex{};
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc = WndProc;
@@ -621,7 +623,7 @@ HRESULT Application::InitDevice()
 
     // Setup the depth buffer
     // [ C4 ]
-    D3D11_TEXTURE2D_DESC depthStencilDesc;
+    D3D11_TEXTURE2D_DESC depthStencilDesc{};
 
     depthStencilDesc.Width = _WindowWidth;
     depthStencilDesc.Height = _WindowHeight;
@@ -641,7 +643,7 @@ HRESULT Application::InitDevice()
     _pImmediateContext->OMSetRenderTargets(1, &_pRenderTargetView, _depthStencilView);
 
     // Setup the viewport
-    D3D11_VIEWPORT vp;
+    D3D11_VIEWPORT vp{};
     vp.Width = (FLOAT)_WindowWidth;
     vp.Height = (FLOAT)_WindowHeight;
     vp.MinDepth = 0.0f;
@@ -1049,7 +1051,7 @@ void Application::Draw()
 
     //use efficient constant buffer
     //by pre multiplying values on cpu
-    ConstantBufferLite cbl;
+    ConstantBufferLite cbl{};
 
     //matrices
     cbl.mWorld = XMMatrixTranspose(world);
@@ -1083,9 +1085,6 @@ void Application::Draw()
     
     //update directX with cb lite
 	_pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cbl, 0, 0);
-
-    UINT stride = sizeof(Vertex);
-    UINT offset = 0;
 
     // "fine-tune" the blending equation
     float blendFactor[] = { 0.75f, 0.75f, 0.75f, 1.0f };
