@@ -33,6 +33,10 @@ Camera::Camera(XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up,
 
 Camera::~Camera() {}
 
+void Camera::Load() {
+
+}
+
 void Camera::AddWayPoint(Vector3D newPoint) {
     WayPoint point = WayPoint();
     point.eye = newPoint;

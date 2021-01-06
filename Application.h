@@ -83,7 +83,7 @@ private:
 	std::normal_distribution<float> nd;
 
 private:
-	const string jsonpath = "JSON";				// JSON config files folder
+	
 
 	HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
 	HRESULT InitCameras();

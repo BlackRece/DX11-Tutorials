@@ -380,6 +380,7 @@
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DX11 Framework.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="JSONLoader.cpp" />
     <ClCompile Include="Lighting.cpp" />
     <ClCompile Include="ModelObject.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
@@ -396,6 +397,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="JSONLoader.h" />
     <ClInclude Include="Lighting.h" />
     <ClInclude Include="ModelObject.h" />
     <ClInclude Include="OBJLoader.h" />

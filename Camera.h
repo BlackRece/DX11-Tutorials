@@ -5,6 +5,8 @@
 
 using namespace DirectX;
 
+static const char* cameraFile = "cameras.json";
+
 class Camera {
 public:
 	struct WayPoint {
@@ -14,8 +16,8 @@ public:
 	};
 private:
 	// Private attributes to store the camera position and view 
-	// volume
 
+	// volume
 	Vector3D _eye;
 	Vector3D _at;
 	Vector3D _to;
@@ -58,6 +60,8 @@ public:
 		float windowWidth, float windowHeight, 
 		float nearDepth, float farDepth);
 	~Camera();
+
+	void Load();
 
 	void AddWayPoint(WayPoint newPoint);
 	void AddWayPoint(Vector3D newPoint);

@@ -1,5 +1,6 @@
 #include "Application.h"
 #include "DDSTextureLoader.h"
+#include "JSONLoader.h"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -213,84 +214,82 @@ HRESULT Application::InitShadersAndInputLayout()
 	return hr;
 }
 
+// [ L1, L2, H1, H2 ]
 HRESULT Application::InitCameras() {
 
     HRESULT hr = S_OK;
 
-    // Initialize the view matrix for cameras
-    // [ L1, L2 ]
-    //default cam
-    _cam[0] = Camera(
-        Vector3D(0.0f, 0.0f, -10.0f),
-        Vector3D(0.0f, 0.0f, 0.0f),
-        Vector3D(0.0f, 1.0f, 0.0f),
-        (float)_WindowWidth, (float)_WindowHeight,
-        0.01f, 100.0f
-    );
-    _cam[0].UseWayPoints(false);
+    json jsonCam = JSONLoader::Load(cameraFile);
 
-    // [ H1, H2 ]
-    //top cam
-    _cam[1] = Camera(
-        Vector3D(0.0f, -10.0f, 0.0f),
-        Vector3D(0.0f, 0.0f, 0.0f),
-        Vector3D(0.0f, 0.0f, 1.0f),
-        (float)_WindowWidth, (float)_WindowHeight,
-        0.01f, 100.0f
-    );
-    _cam[1].UseWayPoints(false);
+    if (!jsonCam.contains("cameras")) {//.is_object()) {
+        return E_FAIL;
+    }
 
-    // [ H1, H2 ]
-    //right cam
-    _cam[2] = Camera(
-        Vector3D(-10.0f, 0.0f, 0.0f),
-        Vector3D(0.0f, 0.0f, 0.0f),
-        Vector3D(0.0f, 1.0f, 0.0f),
-        (float)_WindowWidth, (float)_WindowHeight,
-        0.01f, 100.0f
-    );
-    _cam[2].UseWayPoints(false);
+    Vector3D eye, at, up;
 
-    // [ H1, H2 ]
-    //far cam
-    _cam[3] = Camera(
-        Vector3D(0.0f, 0.0f, -20.0f),
-        Vector3D(0.0f, 0.0f, 0.0f),
-        Vector3D(0.0f, 1.0f, 0.0f),
-        (float)_WindowWidth, (float)_WindowHeight,
-        0.01f, 100.0f
-    );
-    _cam[3].SetLookTo(Vector3D(0.0f, 0.0f, 1.0f));
-    _cam[3].UseLookTo(true);
-    _cam[3].SetView();
-    _cam[3].UseWayPoints(false);
+    _camSelected = 0;
+    _camNum = jsonCam["cameras"].size();
+    _cam = new Camera[_camNum];
 
-    // [ L1 ]
-    //chase cam
-    _cam[4] = Camera(
-        Vector3D(0.0f, 0.0f, -20.0f),
-        Vector3D(0.0f, 0.0f, 0.0f),
-        Vector3D(0.0f, 1.0f, 0.0f),
-        (float)_WindowWidth, (float)_WindowHeight,
-        0.01f, 100.0f
-    );
-    _cam[4].UseWayPoints(false);
+    for (int i = 0; i < _camNum; i++) {
+        //reset vars
+        eye = Vector3D();
+        at = Vector3D();
+        up = Vector3D();
 
-    //waypoint cam
-    _cam[5] = Camera(
-        Vector3D(0.0f, 0.0f, -10.0f),
-        Vector3D(0.0f, 0.0f, 0.0f),
-        Vector3D(0.0f, 1.0f, 0.0f),
-        (float)_WindowWidth, (float)_WindowHeight,
-        0.01f, 100.0f
-    );
-    _cam[5].UseWayPoints(true);
-    //set waypoints
-    _cam[5].AddWayPoint(Vector3D(0.0f, 0.0f, 10.0f));
-    _cam[5].AddWayPoint(Vector3D(-10.0f, 0.0f, 0.0f));
-    _cam[5].AddWayPoint(Vector3D(0.0f, 0.0f, -10.0f));
-    _cam[5].AddWayPoint(Vector3D(10.0f, 0.0f, 0.0f));
+        //set vars from json
+        eye = Vector3D(
+            jsonCam["cameras"][i]["eye"][0].get<float>(),
+            jsonCam["cameras"][i]["eye"][1].get<float>(),
+            jsonCam["cameras"][i]["eye"][2].get<float>()
+        );
 
+        if (jsonCam["cameras"][i].contains("up")) {
+            up = Vector3D(
+                jsonCam["cameras"][i]["up"][0].get<float>(),
+                jsonCam["cameras"][i]["up"][1].get<float>(),
+                jsonCam["cameras"][i]["up"][2].get<float>()
+            );
+        }
+
+        if (jsonCam["cameras"][i].contains("at")) {
+            at = Vector3D(
+                jsonCam["cameras"][i]["at"][0].get<float>(),
+                jsonCam["cameras"][i]["at"][1].get<float>(),
+                jsonCam["cameras"][i]["at"][2].get<float>()
+            );
+        }
+
+        _cam[i] = Camera(eye, at, up,
+            _WindowWidth, _WindowHeight,
+            jsonCam["cameras"][i]["near"],
+            jsonCam["cameras"][i]["far"]
+        );
+
+        if (jsonCam["cameras"][i].contains("UseLookTo")) {
+            _cam[i].UseLookTo(true);
+
+            _cam[i].SetLookTo(Vector3D(
+                jsonCam["cameras"][i]["to"][0].get<float>(),
+                jsonCam["cameras"][i]["to"][1].get<float>(),
+                jsonCam["cameras"][i]["to"][2].get<float>()
+            ));
+
+            _cam[i].SetView();
+        }
+
+        if (jsonCam["cameras"][i].contains("UseWayPoints")) {
+            _cam[i].UseWayPoints(true);
+            for (int j = 0; j < jsonCam["cameras"][i]["waypoints"].size(); j++) {
+                _cam[i].AddWayPoint(Vector3D(
+                    jsonCam["cameras"][i]["waypoints"][j][0].get<float>(),
+                    jsonCam["cameras"][i]["waypoints"][j][1].get<float>(),
+                    jsonCam["cameras"][i]["waypoints"][j][2].get<float>()
+                ));
+            }
+        }
+    }
+    
     return hr;
 }
 
@@ -653,6 +652,7 @@ HRESULT Application::InitDevice()
 
 	InitShadersAndInputLayout();
 
+    // [ G1, G2, H1, H2, L1, L2 ]
     hr = InitCameras();
     
     if (FAILED(hr))
