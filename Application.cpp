@@ -144,7 +144,80 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow) {
 	// Initialize the world origin matrix 
 	XMStoreFloat4x4(&_world, XMMatrixIdentity());
 
-    // Initialize the view matrix
+	return S_OK;
+}
+
+HRESULT Application::InitShadersAndInputLayout()
+{
+	HRESULT hr;
+
+    // Compile the vertex shader
+    ID3DBlob* pVSBlob = nullptr;
+    hr = CompileShaderFromFile(L"DX11 Framework.fx", "VS", "vs_4_0", &pVSBlob);
+
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+                   L"VSBlob: The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+
+	// Create the vertex shader
+	hr = _pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &_pVertexShader);
+
+	if (FAILED(hr))
+	{	
+		pVSBlob->Release();
+        return hr;
+	}
+
+	// Compile the pixel shader
+	ID3DBlob* pPSBlob = nullptr;
+    hr = CompileShaderFromFile(L"DX11 Framework.fx", "PS", "ps_4_0", &pPSBlob);
+
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+                   L"PSBlob: The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+
+	// Create the pixel shader
+	hr = _pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &_pPixelShader);
+	pPSBlob->Release();
+
+    if (FAILED(hr))
+        return hr;
+
+    // Define the input layout
+    D3D11_INPUT_ELEMENT_DESC layout[] =
+    {
+        { "POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	UINT numElements = ARRAYSIZE(layout);
+
+    // Create the input layout
+	hr = _pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
+                                        pVSBlob->GetBufferSize(), &_pVertexLayout);
+	pVSBlob->Release();
+
+	if (FAILED(hr))
+        return hr;
+
+    // Set the input layout
+    _pImmediateContext->IASetInputLayout(_pVertexLayout);
+
+	return hr;
+}
+
+HRESULT Application::InitCameras() {
+
+    HRESULT hr = S_OK;
+
+    // Initialize the view matrix for cameras
     // [ L1, L2 ]
     //default cam
     _cam[0] = Camera(
@@ -218,73 +291,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow) {
     _cam[5].AddWayPoint(Vector3D(0.0f, 0.0f, -10.0f));
     _cam[5].AddWayPoint(Vector3D(10.0f, 0.0f, 0.0f));
 
-	return S_OK;
-}
-
-HRESULT Application::InitShadersAndInputLayout()
-{
-	HRESULT hr;
-
-    // Compile the vertex shader
-    ID3DBlob* pVSBlob = nullptr;
-    hr = CompileShaderFromFile(L"DX11 Framework.fx", "VS", "vs_4_0", &pVSBlob);
-
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr,
-                   L"VSBlob: The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-        return hr;
-    }
-
-	// Create the vertex shader
-	hr = _pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &_pVertexShader);
-
-	if (FAILED(hr))
-	{	
-		pVSBlob->Release();
-        return hr;
-	}
-
-	// Compile the pixel shader
-	ID3DBlob* pPSBlob = nullptr;
-    hr = CompileShaderFromFile(L"DX11 Framework.fx", "PS", "ps_4_0", &pPSBlob);
-
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr,
-                   L"PSBlob: The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-        return hr;
-    }
-
-	// Create the pixel shader
-	hr = _pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &_pPixelShader);
-	pPSBlob->Release();
-
-    if (FAILED(hr))
-        return hr;
-
-    // Define the input layout
-    D3D11_INPUT_ELEMENT_DESC layout[] =
-    {
-        { "POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-
-	UINT numElements = ARRAYSIZE(layout);
-
-    // Create the input layout
-	hr = _pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
-                                        pVSBlob->GetBufferSize(), &_pVertexLayout);
-	pVSBlob->Release();
-
-	if (FAILED(hr))
-        return hr;
-
-    // Set the input layout
-    _pImmediateContext->IASetInputLayout(_pVertexLayout);
-
-	return hr;
+    return hr;
 }
 
 HRESULT Application::InitPlane() {
@@ -645,6 +652,11 @@ HRESULT Application::InitDevice()
     _pImmediateContext->RSSetViewports(1, &vp);
 
 	InitShadersAndInputLayout();
+
+    hr = InitCameras();
+    
+    if (FAILED(hr))
+        return hr;
 
     hr = InitPlane();
 
