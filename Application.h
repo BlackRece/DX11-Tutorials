@@ -21,6 +21,8 @@ private:
 	// config file paths
 	const string cameraFile =	"cameras.json";
 	const string cubeFile =		"cubes.json";
+	const string planeFile =	"planes.json";
+	const string pyramidFile =	"pyramids.json";
 
 	HINSTANCE					_hInst;
 	HWND						_hWnd;
@@ -38,8 +40,6 @@ private:
 	ID3D11BlendState*			_Transparency;		//transparency
 
 	XMFLOAT4X4					_world;
-	XMFLOAT4X4					_view;
-	XMFLOAT4X4					_projection;
 
 	Camera*						_cam;				// array of cameras
 	int							_camNum;			// number of cameras
@@ -56,8 +56,10 @@ private:
 
 	//pyramid
 	int							_pyramidNum;
+	int							_uniPyramidNum;
 	GameObject					_pPyramidGO;
 	GameObject*					_pyramidGOs;
+	GameObject*					_uniquePyramidGOs;
 
 	//cube
 	int							_cubeNum;

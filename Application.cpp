@@ -75,11 +75,11 @@ Application::Application()
 
     // [ B1 ]
     //pyramid
-    _pyramidNum = 5;
+    _pyramidNum = 0;
+    _uniPyramidNum = 0;
 
     _pPyramidGO._pos = Vector3D(0.0f, -3.0f, -3.0f);
     _pPyramidGO._scale = Vector3D(1.0f, 1.0f, 1.0f);
-    _pyramidGOs = new GameObject[_cubeNum];
 
     // [ B1 ]
     //solar system example
@@ -320,6 +320,7 @@ HRESULT Application::InitPlane() {
 HRESULT Application::InitCubeGO() {
     HRESULT hr = S_OK;
 
+    // [ G2 ]
     json jsonCube = JSONLoader::Load(cubeFile);
 
     if (!jsonCube.contains("cubeCount")) {
@@ -483,68 +484,153 @@ HRESULT Application::InitCubeGO() {
 HRESULT Application::InitPyramidGO() {
     HRESULT hr = S_OK;
 
-    VertexTextures pyramidVertTex[] = {
-        // bottom square (0-3)
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //0
-        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //1
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 0.0f) }, //2
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(1.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //3
+    // [ G2 ]
+    json jPy = JSONLoader::Load(pyramidFile);
 
-        // top point first - front face (4-6)
-        { XMFLOAT3(0.0f, 1.0f, 0.0f),       XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
-        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //1
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //0
+    if (!jPy.contains("pyramidCount")) {
+        return E_FAIL;
+    } else {
+        _pyramidNum = jPy["pyramidCount"].get<int>();
+        _uniPyramidNum = (int)jPy["pyramids"].size();
+        _pyramidNum -= _uniPyramidNum;
+    }
 
-        // right face (7-9)
-        { XMFLOAT3(0.0f, 1.0f, 0.0f),       XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, //2
-        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //1
+    if (
+        !jPy.contains("vertices") &&
+        !jPy.contains("uvs") &&
+        !jPy.contains("indices")
+        ) {
+        return E_FAIL;
+    }
 
-        // back face (10-12)
-        { XMFLOAT3(0.0f, 1.0f, 0.0f),       XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(1.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //3
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //2
+    MeshArray pyramid{};
 
-        // left face (13-15)
-        { XMFLOAT3(0.0f, 1.0f, 0.0f),       XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, //0
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(1.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //3
-    };
+    if (jPy["vertices"].size() == jPy["uvs"].size()) {
+        for (int i = 0; i < (int)jPy["vertices"].size(); i++) {
+            pyramid.Vertices.push_back(Vertex(
+                XMFLOAT3(
+                    jPy["vertices"][i][0].get<float>(),
+                    jPy["vertices"][i][1].get<float>(),
+                    jPy["vertices"][i][2].get<float>()
+                ),
+                XMFLOAT2(
+                    jPy["uvs"][i][0].get<float>(),
+                    jPy["uvs"][i][1].get<float>()
+                )
+            ));
+        }
 
-    _pPyramidGO._model->ImportVertices(pyramidVertTex, sizeof(pyramidVertTex));
-    
+        _pPyramidGO._model->_mesh.Vertices = pyramid.Vertices;
+
+    } else {
+        return E_INVALIDARG;
+    }
+
     hr = _pPyramidGO._model->CreateVertexBuffer(*_pd3dDevice);
 
-    if (FAILED(hr))
-        return hr;
+    if (FAILED(hr)) return hr;
 
-    WORD pyramidIndTex[] = {
-        0,1,3,  1,2,3,  // bottom
-        5,6,4,          // front
-        8,9,7,          // right
-        11,12,10,       // back
-        14,15,13        // left
-    };
+    for (int i = 0; i < (int)jPy["indices"].size(); i++) {
+        pyramid.Indices.push_back(
+            jPy["indices"][i].get<unsigned short>()
+        );
+    }
 
-    _pPyramidGO._model->ImportIndices(pyramidIndTex, sizeof(pyramidIndTex));
+    _pPyramidGO._model->_mesh.Indices = pyramid.Indices;
 
     hr = _pPyramidGO._model->CreateIndexBuffer(*_pd3dDevice);
 
-    if (FAILED(hr))
-        return hr;
+    if (FAILED(hr)) return hr;
 
-    //_pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/ChainLink.dds");
-    _pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
+    // build array of cube gameObjects
+    _pyramidGOs = new GameObject[_pyramidNum];
+    _uniquePyramidGOs = new GameObject[_uniPyramidNum];
+    int tID = 0;
+    int k = 0;
+    Vector3D pos, scale, angle;
+    string texturePath;
 
-    // Duplicate for array
-    for (int i = 0; i < (int)_pyramidNum; i++) {
-        _pyramidGOs[i]._model = new ModelObject();
-        _pyramidGOs[i]._model = _pPyramidGO._model;
+    for (int i = 0; i < int(_pyramidNum + _uniPyramidNum); i++) {
+        tID = 0;
+        pos = Vector3D();
+        scale = Vector3D();
+        angle = Vector3D();
+        texturePath = "";
 
-        _pyramidGOs[i]._pos = _pPyramidGO._pos;
-        _pyramidGOs[i]._scale = _pPyramidGO._scale;
+        pos = Vector3D(
+            jPy["default"]["position"][0].get<float>(),
+            jPy["default"]["position"][1].get<float>(),
+            jPy["default"]["position"][2].get<float>()
+        );
 
-        _pyramidGOs[i].CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
+        scale = Vector3D(
+            jPy["default"]["scale"][0].get<float>(),
+            jPy["default"]["scale"][1].get<float>(),
+            jPy["default"]["scale"][2].get<float>()
+        );
+
+        if (jPy["default"].contains("angle")) {
+            angle = Vector3D(
+                jPy["default"]["angle"][0].get<float>(),
+                jPy["default"]["angle"][1].get<float>(),
+                jPy["default"]["angle"][2].get<float>()
+            );
+        }
+
+        tID = jPy["default"]["textureID"].get<int>();
+
+        if (jPy.contains("pyramids")) {
+            for (int j = 0; j < _uniPyramidNum; j++) {
+                if (i == jPy["pyramids"][j]["index"].get<int>()) {
+                    pos = Vector3D(
+                        jPy["pyramids"][j]["position"][0].get<float>(),
+                        jPy["pyramids"][j]["position"][1].get<float>(),
+                        jPy["pyramids"][j]["position"][2].get<float>()
+                    );
+
+                    scale = Vector3D(
+                        jPy["pyramids"][j]["scale"][0].get<float>(),
+                        jPy["pyramids"][j]["scale"][1].get<float>(),
+                        jPy["pyramids"][j]["scale"][2].get<float>()
+                    );
+
+                    tID = jPy["pyramids"][j]["textureID"].get<int>();
+                }
+            }
+        }
+
+        if (jPy.contains("textures")) {
+            texturePath = jPy["textures"][tID].get<string>();
+        }
+
+        if (i == 0) {
+            _pPyramidGO.CreateTexture(
+                *_pd3dDevice,
+                jPy["textures"][0].get<string>()
+            );
+        }
+
+        if (i < _pyramidNum) {
+            _pyramidGOs[i] = GameObject();
+            _pyramidGOs[i]._model = _pPyramidGO._model;
+
+            _pyramidGOs[i].CreateTexture(*_pd3dDevice, texturePath);
+
+            _pyramidGOs[i]._pos = pos;
+            _pyramidGOs[i]._scale = scale;
+            _pyramidGOs[i]._angle = angle;
+        } else {
+            _uniquePyramidGOs[k] = GameObject();
+            _uniquePyramidGOs[k]._model = _pPyramidGO._model;
+
+            _uniquePyramidGOs[k].CreateTexture(*_pd3dDevice, texturePath);
+
+            _uniquePyramidGOs[k]._pos = pos;
+            _uniquePyramidGOs[k]._scale = scale;
+            _uniquePyramidGOs[k]._angle = angle;
+
+            if (k < _uniPyramidNum) k++;
+        }
     }
 
     // Duplicate for solar system
@@ -993,7 +1079,7 @@ void Application::UpdateBillBoards(float t, GameObject* gObjs, int objCount) {
     //_pPyramidGO._angle.y = angle.y;
 
     for (int i = 0; i < objCount; i++) {
-        gObjs[i]._pos.x = i * (float)objCount * 0.5f;
+        gObjs[i]._pos.x = (i-(objCount*0.5f)) * (float)objCount * 0.5f;
 
         //gObjs[i].LookTo(_cam[_camSelected].GetTranslation());
         gObjs[i]._angle.y = -(_cam[_camSelected].GetRotation().y);
@@ -1064,10 +1150,25 @@ void Application::UpdatePlanes(float t) {
 // Animate the pyramids
 //
 void Application::UpdatePyramids(float t) {
+    //single pyramid
     _pPyramidGO._angle = Vector3D(0.0f, -t, -t);
     _pPyramidGO._pos.z = 10.0f;
 
     _pPyramidGO.Update(t);
+
+    //multiple pyramids
+    for (int i = 0; i < _uniPyramidNum; i++) {
+        _uniquePyramidGOs[i]._angle.y = t;
+
+        _uniquePyramidGOs[i]._pos.x = (i - (i * 0.5f)) * (float)i * 0.5f;
+
+        if (_uniquePyramidGOs[i]._pos.y < -10.0f)
+            _uniquePyramidGOs[i]._pos.y = 10.0f;
+        else
+            _uniquePyramidGOs[i]._pos.y -= t * 0.005f;
+
+        _uniquePyramidGOs[i].Update(t);
+    }
 }
 
 //
@@ -1238,6 +1339,13 @@ void Application::Draw()
     _goDonut.Draw(_pImmediateContext, _pConstantBuffer, cbl);
     // [ C1 ]
     _goTorusKnot.Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    
+    //
+    // Draw more Pyramids
+    //
+    for (int i = 0; i < _uniPyramidNum; i++) {
+        _uniquePyramidGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    }
 
     // Toggle backface culling
     if (!_enableWireFrame) {

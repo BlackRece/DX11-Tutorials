@@ -11,14 +11,14 @@
   "cubes": [
     {
       "index": 9,
-      "position": [ -5.0, 0.0, 5.0 ],
+      "position": [ -10.0, 0.0, 5.0 ],
       "scale": [ 2.0, 2.0, 4.0 ],
       "textureID": 3,
       "isTransparent": true
     },
     {
       "index": 8,
-      "position": [ 5.0, 0.0, 5.0 ],
+      "position": [ 10.0, 0.0, 5.0 ],
       "scale": [ 2.0, 4.0, 2.0 ],
       "textureID": 3,
       "isTransparent": true
