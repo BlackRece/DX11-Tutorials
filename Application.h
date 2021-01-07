@@ -18,6 +18,10 @@ using namespace DirectX;
 
 class Application {
 private:
+	// config file paths
+	const string cameraFile =	"cameras.json";
+	const string cubeFile =		"cubes.json";
+
 	HINSTANCE					_hInst;
 	HWND						_hWnd;
 	D3D_DRIVER_TYPE				_driverType;
@@ -51,13 +55,16 @@ private:
 	bool						_enableCulling;
 
 	//pyramid
+	int							_pyramidNum;
 	GameObject					_pPyramidGO;
 	GameObject*					_pyramidGOs;
 
 	//cube
 	int							_cubeNum;
+	int							_uniCubeNum;
 	GameObject					_pCubeGO;
 	GameObject*					_cubeGOs;
+	GameObject*					_uniqueCubeGOs;
 
 	//mixed array of game objects
 	GameObject*					_solarGOs;

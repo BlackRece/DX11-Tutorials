@@ -31,38 +31,52 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 Application::Application()
 {
+    // Window Properties
 	_hInst = nullptr;
 	_hWnd = nullptr;
 	_driverType = D3D_DRIVER_TYPE_NULL;
 	_featureLevel = D3D_FEATURE_LEVEL_11_0;
-	_pd3dDevice = nullptr;
-	_pImmediateContext = nullptr;
-	_pSwapChain = nullptr;
-	_pRenderTargetView = nullptr;
-	_pVertexShader = nullptr;
-	_pPixelShader = nullptr;
-	_pVertexLayout = nullptr;
-	_pConstantBuffer = nullptr;
 
     _WindowHeight = 0;
     _WindowWidth = 0;
 
+    // Global Settings
+	_pd3dDevice = nullptr;
+	_pImmediateContext = nullptr;
+	_pSwapChain = nullptr;
+	_pRenderTargetView = nullptr;
+    _Transparency = nullptr;
+
+	_pConstantBuffer = nullptr;
+
+    // shaders and layout
+	_pVertexLayout = nullptr;
+	_pVertexShader = nullptr;
+	_pPixelShader = nullptr;
+
+    // wire frame
     _wireFrame = nullptr;
     _enableWireFrame = false;
 
+    // back face culling
     _noCulling = nullptr;
     _enableCulling = false;
 
+    // texturing
+    _pSamplerLinear = nullptr;
+
     // [ B1 ]
     //cube
-    _cubeNum = 5;       // number of cubes
+    _cubeNum = 0;       // number of cubes
+    _uniCubeNum = 0;    // number of unique cubes
 
     _pCubeGO._pos = Vector3D(0.0f, 3.0f, 0.0f);
     _pCubeGO._scale = Vector3D(1.0f, 1.0f, 1.0f);
-    _cubeGOs = new GameObject[_cubeNum];                
 
     // [ B1 ]
     //pyramid
+    _pyramidNum = 5;
+
     _pPyramidGO._pos = Vector3D(0.0f, -3.0f, -3.0f);
     _pPyramidGO._scale = Vector3D(1.0f, 1.0f, 1.0f);
     _pyramidGOs = new GameObject[_cubeNum];
@@ -108,18 +122,11 @@ Application::Application()
     _pLight.SpecularMaterial = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
     _pLight.SpecularPower = 5.0f;
 
-    //camera
-    /*
-    _camNum = 6;
-    _cam = new Camera[_camNum];
-    _camSelected = 0;
-    */
+    
 
     //setup random engine for cubes
     std::mt19937 rnd(randDevice());
-
     
-    _pSamplerLinear = nullptr;
 }
 
 Application::~Application() {
@@ -223,9 +230,8 @@ HRESULT Application::InitCameras() {
 
     json jsonCam = JSONLoader::Load(cameraFile);
 
-    if (!jsonCam.contains("cameras")) {//.is_object()) {
+    if (!jsonCam.contains("cameras"))
         return E_FAIL;
-    }
 
     Vector3D eye, at, up;
 
@@ -314,79 +320,152 @@ HRESULT Application::InitPlane() {
 HRESULT Application::InitCubeGO() {
     HRESULT hr = S_OK;
 
-    VertexTextures cubeVerTexC[] = {
-        // back square (0-3)
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //0
-        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //1
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //2
-        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //3
+    json jsonCube = JSONLoader::Load(cubeFile);
 
-        // front square (4-7)
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //4
-        { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //5
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //6
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //7
+    if (!jsonCube.contains("cubeCount")) {
+        return E_FAIL;
+    } else {
+        _cubeNum = jsonCube["cubeCount"].get<int>();
+        _uniCubeNum = (int)jsonCube["cubes"].size();
+        _cubeNum -= _uniCubeNum;
+    }
 
-        // bottom (for texturing) (8-11)
-        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //2 lbb
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 0.0f) }, //3 rbb
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, //6 rbf
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //7 lbf
+    if (
+        !jsonCube.contains("vertices") &&
+        !jsonCube.contains("uvs") &&
+        !jsonCube.contains("indices")
+        ) {
+        return E_FAIL;
+    }
 
-        // right (for texturing) (12-15)
-        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //1 rtb
-        { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(0.0f, 0.0f) }, //5 rtf
-        { XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, //3 rbb
-        { XMFLOAT3(1.0f, -1.0f, 1.0f),      XMFLOAT3(1.0f, 0.0f, 0.0f),     XMFLOAT2(0.0f, 1.0f) }, //7 rbf
+    MeshArray cube{};
 
-        // left (for texturing) (16-19)
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, // ltf
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f),    XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(1.0f, 1.0f) }, // lbb
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f),     XMFLOAT3(0.0f, 1.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, // lbf
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, // ltb
+    if (jsonCube["vertices"].size() == jsonCube["uvs"].size()) {
+        for (int i = 0; i < (int)jsonCube["vertices"].size(); i++) {
+            cube.Vertices.push_back(Vertex(
+                XMFLOAT3(
+                    jsonCube["vertices"][i][0].get<float>(),
+                    jsonCube["vertices"][i][1].get<float>(),
+                    jsonCube["vertices"][i][2].get<float>()
+                ),
+                XMFLOAT2(
+                    jsonCube["uvs"][i][0].get<float>(),
+                    jsonCube["uvs"][i][1].get<float>()
+                )
+            ));
+        }
 
-        // top (for texturing) (20-23)
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f),      XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 1.0f) }, //4 ltf
-        { XMFLOAT3(1.0f, 1.0f, 1.0f),       XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 1.0f) }, //5 rtf
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f),     XMFLOAT3(0.0f, 0.0f, 1.0f),     XMFLOAT2(0.0f, 0.0f) }, //0 ltb
-        { XMFLOAT3(1.0f, 1.0f, -1.0f),      XMFLOAT3(0.0f, 1.0f, 0.0f),     XMFLOAT2(1.0f, 0.0f) }, //1 rtb
-    };  // 24 in total
+        _pCubeGO._model->_mesh.Vertices = cube.Vertices;
 
-    _pCubeGO._model->ImportVertices(cubeVerTexC, sizeof(cubeVerTexC));
+    } else {
+        return E_INVALIDARG;
+    }
 
     hr = _pCubeGO._model->CreateVertexBuffer(*_pd3dDevice);
 
-    if (FAILED(hr))
-        return hr;
+    if (FAILED(hr)) return hr;
 
-    // Create textured index buffer with
-    WORD cubeIndTex[] = {
-       0,1,2,      2,1,3,      // back
-       6,7,5,      5,4,6,      // front
-       11,9,8,     10,9,11,    // bottom
-       15,12,13,   14,12,15,   // right
-       16,19,18,   18,19,17,   // left
-       20,21,23,   23,22,20    // top
-    };
+    for (int i = 0; i < (int)jsonCube["indices"].size(); i++) {
+        cube.Indices.push_back(
+            jsonCube["indices"][i].get<unsigned short>()
+        );
+    }
 
-    _pCubeGO._model->ImportIndices(cubeIndTex, sizeof(cubeIndTex));
+    _pCubeGO._model->_mesh.Indices = cube.Indices;
 
     hr = _pCubeGO._model->CreateIndexBuffer(*_pd3dDevice);
 
-    if (FAILED(hr))
-        return hr; 
+    if (FAILED(hr)) return hr;
 
-    _pCubeGO.CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
+    // build array of cube gameObjects
+    _cubeGOs = new GameObject[_cubeNum];
+    _uniqueCubeGOs = new GameObject[_uniCubeNum];
+    int tID = 0;
+    int k = 0;
+    Vector3D pos, scale, angle;
+    string texturePath;
 
-    // Duplicate for array
-    for (int i = 0; i < (int)_cubeNum; i++) {
-        _cubeGOs[i]._model = _pCubeGO._model;
+    for (int i = 0; i < int(_cubeNum+_uniCubeNum); i++) {
+        tID = 0;
+        pos = Vector3D();
+        scale = Vector3D();
+        angle = Vector3D();
+        texturePath = "";
 
-        _cubeGOs[i]._pos = _pCubeGO._pos;
-        _cubeGOs[i]._scale = _pCubeGO._scale;
+        pos = Vector3D(
+            jsonCube["default"]["position"][0].get<float>(),
+            jsonCube["default"]["position"][1].get<float>(),
+            jsonCube["default"]["position"][2].get<float>()
+        );
 
-        _cubeGOs[i].CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
+        scale = Vector3D(
+            jsonCube["default"]["scale"][0].get<float>(),
+            jsonCube["default"]["scale"][1].get<float>(),
+            jsonCube["default"]["scale"][2].get<float>()
+        );
 
+        if (jsonCube["default"].contains("angle")) {
+            angle = Vector3D(
+                jsonCube["default"]["angle"][0].get<float>(),
+                jsonCube["default"]["angle"][1].get<float>(),
+                jsonCube["default"]["angle"][2].get<float>()
+            );
+        }
+
+        tID = jsonCube["default"]["textureID"].get<int>();
+
+        if (jsonCube.contains("cubes")) {
+            for (int j = 0; j < _uniCubeNum; j++) {
+                if (i == jsonCube["cubes"][j]["index"].get<int>()) {
+                    pos = Vector3D(
+                        jsonCube["cubes"][j]["position"][0].get<float>(),
+                        jsonCube["cubes"][j]["position"][1].get<float>(),
+                        jsonCube["cubes"][j]["position"][2].get<float>()
+                    );
+
+                    scale = Vector3D(
+                        jsonCube["cubes"][j]["scale"][0].get<float>(),
+                        jsonCube["cubes"][j]["scale"][1].get<float>(),
+                        jsonCube["cubes"][j]["scale"][2].get<float>()
+                    );
+
+                    tID = jsonCube["cubes"][j]["textureID"].get<int>();
+                }
+            }
+        }
+
+        if (jsonCube.contains("textures")) {
+            texturePath = jsonCube["textures"][tID].get<string>();
+        }
+
+        if (i == 0) {
+            _pCubeGO.CreateTexture(
+                *_pd3dDevice, 
+                jsonCube["textures"][0].get<string>()
+            );
+        }
+
+        if (i < _cubeNum) {
+            _cubeGOs[i] = GameObject();
+            _cubeGOs[i]._model = _pCubeGO._model;
+
+            _cubeGOs[i].CreateTexture(*_pd3dDevice, texturePath);
+
+            _cubeGOs[i]._pos = pos;
+            _cubeGOs[i]._scale = scale;
+            _cubeGOs[i]._angle = angle;
+        } else {
+            _uniqueCubeGOs[k] = GameObject();
+            _uniqueCubeGOs[k]._model = _pCubeGO._model;
+
+            _uniqueCubeGOs[k].CreateTexture(*_pd3dDevice, texturePath);
+
+            _uniqueCubeGOs[k]._pos = pos;
+            _uniqueCubeGOs[k]._scale = scale;
+            _uniqueCubeGOs[k]._angle = angle;
+
+            if (k < _uniCubeNum) k++;
+        }
     }
 
     // Duplicate for solar array
@@ -458,7 +537,7 @@ HRESULT Application::InitPyramidGO() {
     _pPyramidGO.CreateTexture(*_pd3dDevice, "Textures/Crate_COLOR.dds");
 
     // Duplicate for array
-    for (int i = 0; i < (int)_cubeNum; i++) {
+    for (int i = 0; i < (int)_pyramidNum; i++) {
         _pyramidGOs[i]._model = new ModelObject();
         _pyramidGOs[i]._model = _pPyramidGO._model;
 
@@ -835,7 +914,7 @@ void Application::Update() {
 
     UpdatePlanes(t);
     
-    UpdateBillBoards(t, _pyramidGOs, _cubeNum);
+    UpdateBillBoards(t, _pyramidGOs, _pyramidNum);
 
     UpdatePyramids(t);
 
@@ -957,6 +1036,10 @@ void Application::UpdateCubes(float t) {
         _cubeGOs[i]._angle.y = roty;
 
         _cubeGOs[i].Update(t);
+    }
+
+    for (int i = 0; i < _uniCubeNum; i++) {
+        _uniqueCubeGOs[i].Update(t);
     }
 }
 
@@ -1115,10 +1198,17 @@ void Application::Draw()
     // Render pyramid array
     //
     // [ C1 ]
-    for (int i = 0; i < _cubeNum; i++) {
+    for (int i = 0; i < _pyramidNum; i++) {
         _pyramidGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
 
+    //
+    // Render cube array
+    //
+    for (int i = 0; i < _cubeNum; i++) {
+        _cubeGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    }
+    
     //
     // Render solar system simulation
     //
@@ -1143,6 +1233,8 @@ void Application::Draw()
     // Draw Loaded Objects
     //
     // [ C1 ]
+    _pCubeGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    // [ C1 ]
     _goDonut.Draw(_pImmediateContext, _pConstantBuffer, cbl);
     // [ C1 ]
     _goTorusKnot.Draw(_pImmediateContext, _pConstantBuffer, cbl);
@@ -1164,11 +1256,8 @@ void Application::Draw()
     // Render cube array
     //
     // [ C1 ]
-    _pCubeGO.Draw(_pImmediateContext, _pConstantBuffer, cbl);
-
-    // [ C1 ]
-    for (int i = 0; i < _cubeNum; i++) {
-        _cubeGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    for (int i = 0; i < _uniCubeNum; i++) {
+        _uniqueCubeGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
 
     //

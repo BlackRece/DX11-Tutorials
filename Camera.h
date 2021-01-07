@@ -5,8 +5,6 @@
 
 using namespace DirectX;
 
-static const char* cameraFile = "cameras.json";
-
 class Camera {
 public:
 	struct WayPoint {

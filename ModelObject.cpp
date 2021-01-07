@@ -6,6 +6,10 @@ ModelObject::ModelObject() {
 
 	_vertexCount = 0;
 	_indexCount = 0;
+
+	_mesh = MeshArray();
+	_stride = 0;
+	_offset = 0;
 }
 
 ModelObject::~ModelObject() {
@@ -14,8 +18,10 @@ ModelObject::~ModelObject() {
 
 // [ B3 ]
 HRESULT ModelObject::CreateVertexBuffer(ID3D11Device& device) {
-	if (_mesh.Vertices.size() < 1) 
+	if (_mesh.Vertices.size() < 1)
 		return E_NOT_SET;
+	else
+		_vertexCount = _mesh.Vertices.size();
 
 	_stride = sizeof(_mesh.Vertices[0]);
 	_offset = 0;
@@ -36,8 +42,10 @@ HRESULT ModelObject::CreateVertexBuffer(ID3D11Device& device) {
 
 // [ B3 ]
 HRESULT ModelObject::CreateIndexBuffer(ID3D11Device& device) {
-	if (_mesh.Indices.size() < 1) 
+	if (_mesh.Indices.size() < 1)
 		return E_NOT_SET;
+	else
+		_indexCount = _mesh.Indices.size();
 
 	D3D11_BUFFER_DESC ibd;
 	ZeroMemory(&ibd, sizeof(ibd));

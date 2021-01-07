@@ -6,6 +6,10 @@ GameObject::GameObject() {
 	_model = new ModelObject();
 
 	_matrix = {};
+	_pos = Vector3D();
+	_scale = Vector3D();
+	_angle = Vector3D();
+
 	_wc = nullptr;
 }
 
