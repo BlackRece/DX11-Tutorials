@@ -1070,19 +1070,16 @@ void Application::UpdateInput(float t) {
 }
 
 void Application::UpdateBillBoards(float t, GameObject* gObjs, int objCount) {
-    //theta = cos^-1 [(A dot B) / (|A| |B|)]
-    //float angle = _pPyramidGO._pos.dot_product(_cam[_camSelected].GetPos());
-    //_pPyramidGO._angle.y = angle;
-    //_pPyramidGO._angle.y = _cam[_camSelected].GetAngle().y;
-    //XMFLOAT4X4 target = _cam[_camSelected].GetView4x4();
-    //Vector3D angle = _pPyramidGO.GetRotation(target);
-    //_pPyramidGO._angle.y = angle.y;
-
+    
     for (int i = 0; i < objCount; i++) {
         gObjs[i]._pos.x = (i-(objCount*0.5f)) * (float)objCount * 0.5f;
 
-        //gObjs[i].LookTo(_cam[_camSelected].GetTranslation());
-        gObjs[i]._angle.y = -(_cam[_camSelected].GetRotation().y);
+        float angle = atan2(
+            gObjs[i]._pos.x - _cam[_camSelected].GetPos().x,
+            gObjs[i]._pos.z - _cam[_camSelected].GetPos().z
+        );
+
+        gObjs[i]._angle.y = (float)angle;
 
         gObjs[i].Update(t);
     }
@@ -1165,7 +1162,7 @@ void Application::UpdatePyramids(float t) {
         if (_uniquePyramidGOs[i]._pos.y < -10.0f)
             _uniquePyramidGOs[i]._pos.y = 10.0f;
         else
-            _uniquePyramidGOs[i]._pos.y -= t * 0.005f;
+            _uniquePyramidGOs[i]._pos.y -= t * 0.0005f;
 
         _uniquePyramidGOs[i].Update(t);
     }

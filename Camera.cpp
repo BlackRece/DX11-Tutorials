@@ -95,15 +95,6 @@ Vector3D Camera::GetRotation() {
             XMVectorGetZ(axis) * radians
         );
     }
-    /*
-    if ((_view._11 == 1.0f) || (_view._11 == -1.0f)) {
-        angle.x = atan2f(_view._13, _view._34);
-    } else {
-        angle.x = atan2f(-_view._31, _view._11);
-        angle.y = asin(_view._21);
-        angle.z = atan2f(-_view._23, _view._22);
-    }
-    */
 
     return angle;
 }
