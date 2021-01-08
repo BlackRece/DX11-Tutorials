@@ -96,6 +96,7 @@ Application::Application()
     //vertical plane
     _goVPlane._pos = Vector3D(0.0f, 0.0f, 12.5f);
     _goVPlane._scale = Vector3D(1.0f, 1.0f, 1.0f);
+    _vertPlanes.clear();
 
     _gTime = 0.0f;
 
@@ -320,31 +321,42 @@ HRESULT Application::InitCameras() {
 HRESULT Application::InitPlane() {
     HRESULT hr = S_OK;
 
-
-    /*
     // [ G2 ]
     json jp = JSONLoader::Load(planeFile);
+    _planeHNum = 0;
+    _planeVNum = 0;
 
     if (!jp.contains("planeCount")) {
         return E_FAIL;
     } else {
         _planeVNum = jp["planeCount"].get<int>();
-        _planeHNum = (int)jp["planes"].size();
+
+        if(jp.contains("planes"))
+            _planeHNum = (int)jp["planes"].size();
+
         _planeVNum -= _planeHNum;
     }
 
     // build array of plane gameObjects
-    GameObject planeGO = GameObject();
-    _goVPlane = new GameObject[_planeVNum];
-    _goHPlane = new GameObject[_planeHNum];
+    //GameObject* planeGO = new GameObject();
+    //_goVPlane = new GameObject[_planeVNum];
+    //_goHPlane = new GameObject[_planeHNum];
+    _vertPlanes = vector<GameObject>();
+    _vertPlanes.clear();
+    _vertPlanes.resize(_planeVNum);
+
     int tID = 0;
     int k = 0;
-    Vector3D pos, scale, angle, dim;
-    XMFLOAT2 detail{};
+    Vector3D pos, scale, angle, dim, last_dim;
+    XMFLOAT2 detail{}, last_detail{};
     string texturePath;
-    bool isHori;
+    bool isHori = false, last_isHori = false;
 
     for (int i = 0; i < int(_planeVNum + _planeHNum); i++) {
+        last_dim = dim;
+        last_detail = detail;
+        last_isHori = isHori;
+
         //reset vars
         tID = 0;
         pos = Vector3D();
@@ -438,15 +450,71 @@ HRESULT Application::InitPlane() {
             texturePath = jp["textures"][tID].get<string>();
         }
 
+        if (i < _planeVNum) {
+            //_goVPlane = GameObject();
+            /*
+            if(
+                last_detail.x == detail.x &&
+                last_detail.y == detail.y &&
+                last_dim == dim &&
+                last_isHori == isHori) {
+
+            } else {
+                planeGO = new GameObject();
+                hr = planeGO->_model->CreatePlane(
+                    *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
+                );
+
+                if (FAILED(hr))
+                    return hr;
+            }
+            */
+            hr = _vertPlanes[i]._model->CreatePlane(
+                *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
+            );
+
+            if (FAILED(hr))
+                return hr;
+
+            _vertPlanes[i].CreateTexture(*_pd3dDevice, texturePath);
+
+            _vertPlanes[i]._pos = pos;
+            _vertPlanes[i]._scale = scale;
+            _vertPlanes[i]._angle = angle;
+
+        }
+
+        /*
+        if (i < _planeVNum) {
+            planeGO = GameObject();
+            
+            planeGO.CreateTexture(*_pd3dDevice, texturePath);
+
+            planeGO._pos = pos;
+            planeGO._scale = scale;
+            planeGO._angle = angle;
+
+            hr = planeGO._model->CreatePlane(
+                *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
+            );
+
+            if (FAILED(hr))
+                return hr;
+
+            _vertPlanes.push_back(planeGO);
+        }
+        */
+        /*
         planeGO = GameObject();
         hr = planeGO._model->CreatePlane(
             *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
         );
-
+        
         if (i < _planeVNum) {
             _goVPlane[i] = GameObject();
-
-            
+            hr = _goVPlane[i]._model->CreatePlane(
+                *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
+            );
 
             _goVPlane[i].CreateTexture(*_pd3dDevice, texturePath);
 
@@ -458,8 +526,6 @@ HRESULT Application::InitPlane() {
         } else {
             _goHPlane[k] = GameObject();
 
-            
-
             _goHPlane[k].CreateTexture(*_pd3dDevice, texturePath);
 
             _goHPlane[k]._model = planeGO._model;
@@ -470,16 +536,20 @@ HRESULT Application::InitPlane() {
 
             if (k < _planeHNum) k++;
         }
-
+        */
         if (FAILED(hr))
             return hr;
     }
-    */
+
     hr = _goHPlane._model->CreatePlane(*_pd3dDevice, Vector3D(20,20,20), 4, 4);
     if (FAILED(hr))
         return hr;
 
-    hr = _goVPlane._model->CreatePlane(*_pd3dDevice, Vector3D(10,10,10), 4, 4, false);
+    //hr = _goVPlane._model->CreatePlane(*_pd3dDevice, Vector3D(10,10,10), 4, 4, false);
+    hr = _goVPlane._model->CreatePlane(
+        *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
+    );
+
     if (FAILED(hr))
         return hr;
 
@@ -1371,10 +1441,7 @@ void Application::UpdateModels(float t) {
 // Update Planes GameObjects
 //
 void Application::UpdatePlanes(float t) {
-    /*
-    for(int i = 0;i<_planeHNum;i++)
-        _goHPlane[i].Update(t);
-    */
+    
     _goHPlane.Update(t);
 
     _goVPlane._angle.y = atan2(
@@ -1383,6 +1450,20 @@ void Application::UpdatePlanes(float t) {
     );
 
     _goVPlane.Update(t);
+
+    vector<GameObject>::iterator it;
+    float x = -(_planeVNum * 0.5f);
+    for (it = _vertPlanes.begin(); it != _vertPlanes.end(); ++it) {
+        it->_pos.x = x;
+        x++;
+
+        it->_angle.y = atan2(
+            it->_pos.x - _cam[_camSelected].GetPos().x,
+            it->_pos.z - _cam[_camSelected].GetPos().z
+        );
+
+        it->Update(t);
+    }
 }
 
 //
@@ -1569,6 +1650,10 @@ void Application::Draw()
         _goHPlane[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     */
     _goHPlane.Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    vector<GameObject>::iterator it;
+    for (it = _vertPlanes.begin(); it != _vertPlanes.end(); ++it) {
+        it->Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    }
 
     //
     // Transparency option (CUSTOM)

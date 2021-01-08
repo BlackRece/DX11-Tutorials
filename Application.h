@@ -77,6 +77,7 @@ private:
 	int							_planeVNum;
 	GameObject					_goHPlane;
 	GameObject					_goVPlane;
+	vector<GameObject>			_vertPlanes;
 	
 	float						_gTime;
 

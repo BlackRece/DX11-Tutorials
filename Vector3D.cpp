@@ -89,6 +89,17 @@ Vector3D& Vector3D::operator=(const Vector3D& vec) {
     return *this;
 }
 
+bool Vector3D::operator==(const Vector3D& vec) {
+    if (
+        x == vec.x &&
+        y == vec.y &&
+        z == vec.z
+        ) {
+        return true;
+    }
+    else return false;
+}
+
 //Dot product (angle)
 float Vector3D::dot_product(const Vector3D& vec) {
     //returns (x1*x2 + y1*y2 + x1*z2) 

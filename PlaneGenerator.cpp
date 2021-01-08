@@ -79,7 +79,11 @@ void PlaneGenerator::CreateVertices(
 			meshData.Vertices[i * col + j].Position = Vector3D(x, y, z);
 
 			//used for lighting.
-			meshData.Vertices[i * col + j].Normal = Vector3D(0.0f, 1.0f, 0.0f);
+			if(isGridHorizontal)
+				meshData.Vertices[i * col + j].Normal = Vector3D(0.0f, 1.0f, 0.0f);
+			else
+				meshData.Vertices[i * col + j].Normal = Vector3D(0.0f, 0.0f, 1.0f);
+
 			meshData.Vertices[i * col + j].TangentU = Vector3D(1.0f, 0.0f, 0.0f);
 
 			//used for texturing.

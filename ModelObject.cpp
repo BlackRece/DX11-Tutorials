@@ -173,6 +173,6 @@ void ModelObject::CalcNormals(std::vector<Vertex> verts, std::vector<unsigned sh
 }
 
 void ModelObject::CleanUp() {
-	if (_vertexBuffer != nullptr) _vertexBuffer->Release();
-	if (_indexBuffer != nullptr)_indexBuffer->Release();
+	if (_vertexBuffer) _vertexBuffer->Release();
+	if (_indexBuffer)_indexBuffer->Release();
 }
