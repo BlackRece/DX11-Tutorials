@@ -25,7 +25,6 @@ private:
 
 	std::vector<WayPoint> _points;
 	int _pointIndex;
-	bool _isUsingWayPoints;
 
 	bool _useLookTo;
 
@@ -45,6 +44,8 @@ private:
 	XMFLOAT4X4 _projection;
 
 public:
+	bool _followPlayer;
+	bool _isUsingWayPoints;
 
 	//Constructor and destructor for the camera
 	Camera();
@@ -52,7 +53,7 @@ public:
 		Vector3D position, Vector3D at, Vector3D up,
 		int windowWidth, int windowHeight,
 		float nearDepth, float farDepth,
-		float rotateSpeed = 0.001f, float translateSpeed = 0.001f);
+		float rotateSpeed = 0.0001f, float translateSpeed = 0.001f);
 	Camera(
 		XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up, 
 		float windowWidth, float windowHeight, 

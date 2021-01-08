@@ -88,7 +88,6 @@ VS_OUTPUT VS(VS_INPUT input)
     output.Pos = mul( input.Pos, World );
 
     // Compute the vector from the vertex to the eye position
-    //float3 toEye = normalize(EyePosW - output.Pos.xyz);
     output.World = normalize(EyePosW - output.Pos.xyz);
 
     // Apply View and Projection transformations
@@ -96,32 +95,7 @@ VS_OUTPUT VS(VS_INPUT input)
 
     // Convert normal from local space to world space 
     // W component of vector is 0 as vectors cannot be translated
-    //float3 normalW = normalize(mul(float4(input.Norm, 0.0f), World).xyz);
     output.Norm = normalize(mul(float4(input.Norm, 0.0f), World).xyz);
-
-    /*
-    // Compute Colour
-    //Compute the reflection vector
-    float3 rVector = reflect(-LightVecW, normalW);
-    
-    // Determine how much (if any) specular light
-    // makes it into the eye
-    float specularAmount = pow(max(dot(rVector, toEye), 0.0f), SpecularPower);
-
-    // Compute the ambient, diffuse and specular terms separately
-    // Calculate Diffuse lighting
-    float diffuseAmount = max(dot(LightVecW, normalW), 0.0f);
-    float3 diffuse = diffuseAmount * DiffuseT.rgb;
-
-    // Calculate Specular lighting
-    float3 specular = specularAmount * SpecularT.rgb;
-
-    // Sum all the lighting terms together
-    output.Color.rgb = AmbientT.rgb + diffuse + specular;
-
-    // Copy over the diffuse alpha
-    output.Color.a = DiffuseMtrlAlpha;
-    */
 
     // Pass texture info
     output.Tex = input.Tex;

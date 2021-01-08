@@ -73,6 +73,8 @@ private:
 	int							_solarNum;
 
 	//plane
+	int							_planeHNum;
+	int							_planeVNum;
 	GameObject					_goHPlane;
 	GameObject					_goVPlane;
 	
@@ -86,6 +88,7 @@ private:
 	GameObject					_goCosmo;
 	GameObject					_goTorusKnot;
 	GameObject					_goDonut;
+	GameObject					_goShip;
 
 	//randomiser util
 	std::random_device			randDevice;	

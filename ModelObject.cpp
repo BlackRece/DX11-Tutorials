@@ -16,6 +16,22 @@ ModelObject::~ModelObject() {
 	CleanUp();
 }
 
+void ModelObject::Clear() {
+	/*
+	_vertexBuffer = nullptr;
+	_indexBuffer = nullptr;
+
+	_vertexCount = 0;
+	_indexCount = 0;
+
+	_stride = 0;
+	_offset = 0;
+	*/
+
+	_mesh.Vertices.clear();
+	_mesh.Indices.clear();
+}
+
 // [ B3 ]
 HRESULT ModelObject::CreateVertexBuffer(ID3D11Device& device) {
 	if (_mesh.Vertices.size() < 1)

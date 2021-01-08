@@ -106,11 +106,15 @@ Application::Application()
 
     // [ B1 ]
     _goTorusKnot._pos = Vector3D(3.0f, -3.0f, 3.0f);
-    _goTorusKnot._scale = Vector3D(3.0f, 3.0f, 3.0f);
+    _goTorusKnot._scale = Vector3D(1.0f, 1.0f, 1.0f);
 
     // [ B1 ]
     _goDonut._pos = Vector3D(-3.0f, -3.0f, 3.0f);
-    _goDonut._scale = Vector3D(3.0f, 3.0f, 3.0f);
+    _goDonut._scale = Vector3D(1.0f, 1.0f, 1.0f);
+
+    // [ B1 ]
+    _goShip._pos = Vector3D(0.0f, -5.0f, -10.0f);
+    _goShip._scale = Vector3D(0.0010f, 0.0010f, 0.0010f);
 
     //lighting
     // [ D1, D2, D3 ]
@@ -284,10 +288,13 @@ HRESULT Application::InitCameras() {
             ));
 
             _cam[i].SetView();
+        } else {
+            _cam[i].UseLookTo(false);
         }
 
         if (jsonCam["cameras"][i].contains("UseWayPoints")) {
             _cam[i].UseWayPoints(true);
+
             for (int j = 0; j < (int)jsonCam["cameras"][i]["waypoints"].size(); j++) {
                 _cam[i].AddWayPoint(Vector3D(
                     jsonCam["cameras"][i]["waypoints"][j][0].get<float>(),
@@ -295,6 +302,15 @@ HRESULT Application::InitCameras() {
                     jsonCam["cameras"][i]["waypoints"][j][2].get<float>()
                 ));
             }
+        } else {
+            _cam[i].UseWayPoints(false);
+        }
+
+        if (jsonCam["cameras"][i].contains("follow")) {
+            _cam[i]._followPlayer = jsonCam["cameras"][i]["follow"].get<bool>();
+            _cam[i].SetLookTo(_cam[i].GetPos());
+        } else {
+            _cam[i]._followPlayer = false;
         }
     }
     
@@ -304,6 +320,161 @@ HRESULT Application::InitCameras() {
 HRESULT Application::InitPlane() {
     HRESULT hr = S_OK;
 
+
+    /*
+    // [ G2 ]
+    json jp = JSONLoader::Load(planeFile);
+
+    if (!jp.contains("planeCount")) {
+        return E_FAIL;
+    } else {
+        _planeVNum = jp["planeCount"].get<int>();
+        _planeHNum = (int)jp["planes"].size();
+        _planeVNum -= _planeHNum;
+    }
+
+    // build array of plane gameObjects
+    GameObject planeGO = GameObject();
+    _goVPlane = new GameObject[_planeVNum];
+    _goHPlane = new GameObject[_planeHNum];
+    int tID = 0;
+    int k = 0;
+    Vector3D pos, scale, angle, dim;
+    XMFLOAT2 detail{};
+    string texturePath;
+    bool isHori;
+
+    for (int i = 0; i < int(_planeVNum + _planeHNum); i++) {
+        //reset vars
+        tID = 0;
+        pos = Vector3D();
+        scale = Vector3D();
+        angle = Vector3D();
+        dim = Vector3D();
+        detail = XMFLOAT2{};
+        isHori = false;
+        texturePath = "";
+
+        //set default vars
+        pos = Vector3D(
+            jp["default"]["position"][0].get<float>(),
+            jp["default"]["position"][1].get<float>(),
+            jp["default"]["position"][2].get<float>()
+        );
+
+        scale = Vector3D(
+            jp["default"]["scale"][0].get<float>(),
+            jp["default"]["scale"][1].get<float>(),
+            jp["default"]["scale"][2].get<float>()
+        );
+
+        dim = Vector3D(
+            jp["default"]["dimension"][0].get<int>(),
+            jp["default"]["dimension"][1].get<int>(),
+            jp["default"]["dimension"][2].get<int>()
+        );
+
+        detail = XMFLOAT2{
+            jp["default"]["detail"][0].get<float>(),
+            jp["default"]["detail"][1].get<float>(),
+        };
+
+        if (jp["default"].contains("angle")) {
+            angle = Vector3D(
+                jp["default"]["angle"][0].get<float>(),
+                jp["default"]["angle"][1].get<float>(),
+                jp["default"]["angle"][2].get<float>()
+            );
+        }
+
+        isHori = jp["default"]["isHorizontal"].get<bool>();
+
+        tID = jp["default"]["textureID"].get<int>();
+
+        //set specific vars
+        if (jp.contains("planes")) {
+            for (int j = 0; j < _planeHNum; j++) {
+                if (i == jp["planes"][j]["index"].get<int>()) {
+                    pos = Vector3D(
+                        jp["planes"][j]["position"][0].get<float>(),
+                        jp["planes"][j]["position"][1].get<float>(),
+                        jp["planes"][j]["position"][2].get<float>()
+                    );
+
+                    scale = Vector3D(
+                        jp["planes"][j]["scale"][0].get<float>(),
+                        jp["planes"][j]["scale"][1].get<float>(),
+                        jp["planes"][j]["scale"][2].get<float>()
+                    );
+
+                    dim = Vector3D(
+                        jp["planes"][j]["dimension"][0].get<float>(),
+                        jp["planes"][j]["dimension"][1].get<float>(),
+                        jp["planes"][j]["dimension"][2].get<float>()
+                    );
+
+                    detail = XMFLOAT2{
+                        jp["planes"][j]["detail"][0].get<float>(),
+                        jp["planes"][j]["detail"][1].get<float>(),
+                    };
+
+                    if (jp["planes"].contains("angle")) {
+                        angle = Vector3D(
+                            jp["planes"][j]["angle"][0].get<float>(),
+                            jp["planes"][j]["angle"][1].get<float>(),
+                            jp["planes"][j]["angle"][2].get<float>()
+                        );
+                    }
+
+                    isHori = jp["planes"][j]["isHorizontal"].get<bool>();
+
+                    tID = jp["planes"][j]["textureID"].get<int>();
+                }
+            }
+        }
+
+        //set texture path
+        if (jp.contains("textures")) {
+            texturePath = jp["textures"][tID].get<string>();
+        }
+
+        planeGO = GameObject();
+        hr = planeGO._model->CreatePlane(
+            *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
+        );
+
+        if (i < _planeVNum) {
+            _goVPlane[i] = GameObject();
+
+            
+
+            _goVPlane[i].CreateTexture(*_pd3dDevice, texturePath);
+
+            _goVPlane[i]._model = planeGO._model;
+
+            _goVPlane[i]._pos = pos;
+            _goVPlane[i]._scale = scale;
+            _goVPlane[i]._angle = angle;
+        } else {
+            _goHPlane[k] = GameObject();
+
+            
+
+            _goHPlane[k].CreateTexture(*_pd3dDevice, texturePath);
+
+            _goHPlane[k]._model = planeGO._model;
+
+            _goHPlane[k]._pos = pos;
+            _goHPlane[k]._scale = scale;
+            _goHPlane[k]._angle = angle;
+
+            if (k < _planeHNum) k++;
+        }
+
+        if (FAILED(hr))
+            return hr;
+    }
+    */
     hr = _goHPlane._model->CreatePlane(*_pd3dDevice, Vector3D(20,20,20), 4, 4);
     if (FAILED(hr))
         return hr;
@@ -313,7 +484,6 @@ HRESULT Application::InitPlane() {
         return hr;
 
     _goVPlane.CreateTexture(*_pd3dDevice, "Textures/Pine Tree.dds");
-
     return hr;
 }
 
@@ -843,19 +1013,20 @@ HRESULT Application::InitDevice()
     // Initialize a loaded objects
     string imgpath = "Models/Cosmo/OpticContainer.dds";
     //3ds Max
-    //objMeshDataA = OBJLoader::Load("Models/3dsMax/torusKnot.obj", _pd3dDevice);
     _goTorusKnot._model->LoadOBJ("Models/3dsMax/torusKnot.obj", _pd3dDevice);
     _goTorusKnot.CreateTexture(*_pd3dDevice, imgpath);
 
     //Blender
-    //objMeshDataB = OBJLoader::Load("Models/Blender/donut.obj", _pd3dDevice, false);
     _goDonut._model->LoadOBJ("Models/Blender/donut.obj", _pd3dDevice, false);
     _goDonut.CreateTexture(*_pd3dDevice, imgpath);
 
     //Cosmo??
-    //_goCosmo = OBJLoader::Load("Models/Cosmo/OpticContainer.obj", _pd3dDevice, false);
     _goCosmo._model->LoadOBJ("Models/Cosmo/OpticContainer.obj", _pd3dDevice, false);
     _goCosmo.CreateTexture(*_pd3dDevice, imgpath);
+
+    //Player's Ship
+    _goShip._model->LoadOBJ("Models/mk6_fighter.obj", _pd3dDevice, false);
+    _goShip.CreateTexture(*_pd3dDevice, "Textures/SciFi_Fighter-MK6-diffuse.dds");
     
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -1001,6 +1172,7 @@ void Application::Update() {
     UpdatePlanes(t);
     
     UpdateBillBoards(t, _pyramidGOs, _pyramidNum);
+    //UpdateBillBoards(t, _goVPlane, _planeVNum);
 
     UpdatePyramids(t);
 
@@ -1008,63 +1180,125 @@ void Application::Update() {
 
     UpdateModels(t);
 
+    //player
+    _goShip.Update(t);
+
     // Update our cameras
     if (_camSelected == 4) {
         _cam[_camSelected].SetView(_cubeGOs[1]._matrix);
     }
+    // Update player camera
+    if (_cam[_camSelected]._followPlayer) {
+        _cam[_camSelected].
+            SetPos(_goShip._pos + _cam[_camSelected].GetLookTo());
+    }
+
     _cam[_camSelected].Update();
 }
 
 void Application::UpdateInput(float t) {
     //keyboard input
     // should be handled by window not graphics
-    if (GetKeyState('Q') & 0x8000) {
+    if (GetKeyState('X') & 0x8000) {
         _enableWireFrame = (_enableWireFrame) ? false : true;
     }
 
     // camera switching
+    if (GetKeyState('Q') & 0x8000) {
+        // next cam
+        if (_camSelected < _camNum)
+            _camSelected++;
+        else
+            _camSelected = 0;
+
+    }
+
+    if (GetKeyState('E') & 0x8000) {
+        // prev cam
+        if (_camSelected > 0)
+            _camSelected--;
+        else
+            _camSelected = _camNum;
+    }
+
     if (GetKeyState('1') & 0x8000) {
+        // default cam
         _camSelected = 0;
     }
 
     if (GetKeyState('2') & 0x8000) {
-        _camSelected = 1;
+        // switch between waypoint cam(s)
+        int nextCam = _camSelected;
+        int endCam = _camSelected;
+        do {
+            if (nextCam >= _camNum) nextCam = 0;
+            else nextCam++;
+
+            if (_cam[nextCam]._isUsingWayPoints) {
+                _camSelected = nextCam;
+                break;
+            }
+        } while (nextCam != endCam);
     }
 
-    if (GetKeyState('3') & 0x8000) {
-        _camSelected = 2;
-    }
+    if (GetKeyState('0') & 0x8000) {
+        // switch between player cam(s)
+        int nextCam = _camSelected;
+        int endCam = _camSelected;
+        do {
+            if (nextCam >= _camNum) nextCam = 0;
+            else nextCam++;
 
-    if (GetKeyState('4') & 0x8000) {
-        _camSelected = 3;
-    }
-
-    if (GetKeyState('5') & 0x8000) {
-        _camSelected = 4;
-    }
-
-    if (GetKeyState('6') & 0x8000) {
-        _camSelected = 5;
+            if (_cam[nextCam]._followPlayer) {
+                _camSelected = nextCam;
+                break;
+            }
+        } while (nextCam != endCam);
     }
 
     // [ E1, E2 ]
     // camera movement
-    if (GetKeyState('W') & 0x8000) {
-        _cam[_camSelected].MoveForward(t);
-        _cam[_camSelected].SetView();
-    }
-    if (GetKeyState('S') & 0x8000) {
-        _cam[_camSelected].MoveForward(-t);
-        _cam[_camSelected].SetView();
-    }
-    if (GetKeyState('A') & 0x8000) {
-        _cam[_camSelected].MoveSidewards(-t);
-    }
-    if (GetKeyState('D') & 0x8000) {
-        _cam[_camSelected].MoveSidewards(t);
+    if (!_cam[_camSelected]._isUsingWayPoints) {
+        if (GetKeyState('W') & 0x8000) {
+            //forward
+            if (_cam[_camSelected]._followPlayer) {
+
+            } else {
+                _cam[_camSelected].MoveForward(t);
+                _cam[_camSelected].SetView();
+
+            }
+        }
+        if (GetKeyState('S') & 0x8000) {
+            //backward
+            if (_cam[_camSelected]._followPlayer) {
+
+            } else {
+                _cam[_camSelected].MoveForward(-t);
+                _cam[_camSelected].SetView();
+
+            }
+        }
+        if (GetKeyState('A') & 0x8000) {
+            //left
+            if (_cam[_camSelected]._followPlayer) {
+
+            } else {
+                _cam[_camSelected].MoveSidewards(-t);
+            }
+        }
+        if (GetKeyState('D') & 0x8000) {
+            //right
+            if (_cam[_camSelected]._followPlayer) {
+
+            } else {
+                _cam[_camSelected].MoveSidewards(t);
+            }
+        }
     }
 
     if (GetKeyState(' ') & 0x8000) {
+        //reset current cam
         _cam[_camSelected].SetView();
     }
 }
@@ -1074,12 +1308,10 @@ void Application::UpdateBillBoards(float t, GameObject* gObjs, int objCount) {
     for (int i = 0; i < objCount; i++) {
         gObjs[i]._pos.x = (i-(objCount*0.5f)) * (float)objCount * 0.5f;
 
-        float angle = atan2(
+        gObjs[i]._angle.y = atan2(
             gObjs[i]._pos.x - _cam[_camSelected].GetPos().x,
             gObjs[i]._pos.z - _cam[_camSelected].GetPos().z
         );
-
-        gObjs[i]._angle.y = (float)angle;
 
         gObjs[i].Update(t);
     }
@@ -1139,7 +1371,17 @@ void Application::UpdateModels(float t) {
 // Update Planes GameObjects
 //
 void Application::UpdatePlanes(float t) {
+    /*
+    for(int i = 0;i<_planeHNum;i++)
+        _goHPlane[i].Update(t);
+    */
     _goHPlane.Update(t);
+
+    _goVPlane._angle.y = atan2(
+        _goVPlane._pos.x - _cam[_camSelected].GetPos().x,
+        _goVPlane._pos.z - _cam[_camSelected].GetPos().z
+    );
+
     _goVPlane.Update(t);
 }
 
@@ -1287,6 +1529,11 @@ void Application::Draw()
     // Render opaque objects //
 
     //
+    // Reader Player's Ship
+    //
+    _goShip.Draw(_pImmediateContext, _pConstantBuffer, cbl);
+
+    //
     // Renders a pyramid
     //
     // [ C1 ]
@@ -1315,8 +1562,12 @@ void Application::Draw()
         _solarGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
 
-    // quad floor
+    // floor (plane array)
     // [ C2 ]
+    /*
+    for(int i=0;i<_planeHNum;i++)
+        _goHPlane[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    */
     _goHPlane.Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     //
@@ -1355,6 +1606,10 @@ void Application::Draw()
 
     // pine plane
     // [ C1 ]
+    /*
+    for(int i=0;i<_planeVNum;i++)
+        _goVPlane[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    */
     _goVPlane.Draw(_pImmediateContext, _pConstantBuffer, cbl);
     
     //

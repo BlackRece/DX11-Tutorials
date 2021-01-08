@@ -1,5 +1,5 @@
 {
-  "pyramidCount": 10,
+  "pyramidCount": 4,
 
   "default": {
     "position": [ 0.0, -9.0, 7.0 ],
@@ -10,14 +10,14 @@
 
   "pyramids": [
     {
-      "index": 9,
+      "index": 3,
       "position": [ 0.0, -5.0, 5.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
       "textureID": 3,
       "isTransparent": false
     },
     {
-      "index": 8,
+      "index": 2,
       "position": [ 0.0, 5.0, 5.0 ],
       "scale": [ 4.0, 2.0, 4.0 ],
       "textureID": 3,

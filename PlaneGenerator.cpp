@@ -64,7 +64,8 @@ void PlaneGenerator::CreateVertices(
 	float du = 1.0f / (col - 1);
 	float dv = 1.0f / (row - 1);
 
-	meshData.Vertices.resize(_vertexCount);
+	if(meshData.Vertices.size() != _vertexCount)
+		meshData.Vertices.resize(_vertexCount);
 
 	for (int i = 0; i < row; ++i) {
 		float z = 0.0f;

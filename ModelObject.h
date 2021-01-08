@@ -23,6 +23,8 @@ public:
 	ModelObject();
 	~ModelObject();
 
+	void Clear();
+
 	// Model
 	// [ B3 ]
 	HRESULT CreateVertexBuffer(ID3D11Device& device);
