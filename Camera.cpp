@@ -4,10 +4,23 @@ Camera::Camera() {
     _points.clear();
     _pointIndex = 0;
     _isUsingWayPoints = false;
+    _useLookTo = false;
+
+    _farDepth = 0;
+    _nearDepth = 0;
+
+    _rotateSpeed = 0;
+    _translateSpeed = 0;
+
+    _windowHeight = 0;
+    _windowWidth = 0;
+
+    _view = {};
+    _projection = {};
 }
 
 Camera::Camera(Vector3D position, Vector3D at, Vector3D up,
-    float windowWidth, float windowHeight,
+    int windowWidth, int windowHeight, 
     float nearDepth, float farDepth,
     float rotateSpeed, float translateSpeed) : _useLookTo(false), 
     _rotateSpeed(rotateSpeed), _translateSpeed(translateSpeed) {
@@ -19,6 +32,7 @@ Camera::Camera(Vector3D position, Vector3D at, Vector3D up,
     Reshape(windowWidth, windowHeight, nearDepth, farDepth);
 }
 
+/*
 Camera::Camera(XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up,
     float windowWidth, float windowHeight,
     float nearDepth, float farDepth) {
@@ -27,11 +41,16 @@ Camera::Camera(XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up,
         Vector3D(position.x, position.y, position.z),
         Vector3D(at.x,at.y,at.z),
         Vector3D(up.x,up.y,up.z),
-        windowWidth, windowHeight,
+        (int)windowWidth, (int)windowHeight,
         nearDepth, farDepth);
 }
+*/
 
 Camera::~Camera() {}
+
+void Camera::Load() {
+
+}
 
 void Camera::AddWayPoint(Vector3D newPoint) {
     WayPoint point = WayPoint();
@@ -76,15 +95,6 @@ Vector3D Camera::GetRotation() {
             XMVectorGetZ(axis) * radians
         );
     }
-    /*
-    if ((_view._11 == 1.0f) || (_view._11 == -1.0f)) {
-        angle.x = atan2f(_view._13, _view._34);
-    } else {
-        angle.x = atan2f(-_view._31, _view._11);
-        angle.y = asin(_view._21);
-        angle.z = atan2f(-_view._23, _view._22);
-    }
-    */
 
     return angle;
 }
@@ -194,7 +204,7 @@ void Camera::MoveTo(Vector3D point, float speed) {
 }
 
 void Camera::Reshape(
-    float windowWidth, float windowHeight,
+    int windowWidth, int windowHeight,
     float nearDepth, float farDepth) {
 
     _windowWidth = windowWidth;
@@ -205,7 +215,7 @@ void Camera::Reshape(
 
     SetView();
 
-    SetProjection(XM_PIDIV2, _windowWidth / _windowHeight, _nearDepth, _farDepth);
+    SetProjection(XM_PIDIV2, float(_windowWidth / _windowHeight), _nearDepth, _farDepth);
 }
 
 void Camera::Rotate(float xAxis, float yAxis, float zAxis) {
@@ -292,7 +302,7 @@ void Camera::Update() {
         } else {
             // close enough to waypoint
             _eye = _points[_pointIndex].eye;
-            if (_pointIndex++ >= _points.size() - 1)
+            if (_pointIndex++ >= (int)_points.size() - 1)
                 _pointIndex = 0;
         }
     }

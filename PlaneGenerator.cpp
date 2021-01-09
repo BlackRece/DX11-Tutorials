@@ -64,7 +64,8 @@ void PlaneGenerator::CreateVertices(
 	float du = 1.0f / (col - 1);
 	float dv = 1.0f / (row - 1);
 
-	meshData.Vertices.resize(_vertexCount);
+	if(meshData.Vertices.size() != _vertexCount)
+		meshData.Vertices.resize(_vertexCount);
 
 	for (int i = 0; i < row; ++i) {
 		float z = 0.0f;
@@ -78,7 +79,11 @@ void PlaneGenerator::CreateVertices(
 			meshData.Vertices[i * col + j].Position = Vector3D(x, y, z);
 
 			//used for lighting.
-			meshData.Vertices[i * col + j].Normal = Vector3D(0.0f, 1.0f, 0.0f);
+			if(isGridHorizontal)
+				meshData.Vertices[i * col + j].Normal = Vector3D(0.0f, 1.0f, 0.0f);
+			else
+				meshData.Vertices[i * col + j].Normal = Vector3D(0.0f, 0.0f, 1.0f);
+
 			meshData.Vertices[i * col + j].TangentU = Vector3D(1.0f, 0.0f, 0.0f);
 
 			//used for texturing.
@@ -138,9 +143,9 @@ void PlaneGenerator::CreateIndices(MeshArray& meshData) {
 	unsigned short TL, TR, BL, BR;
 
 	// Iterate over each quad and compute indices.
-	unsigned int k = 0;
-	for (unsigned int i = 0; i < _row-1 ; ++i) {
-		for (unsigned int j = 0; j < _col-1 ; ++j) {
+	unsigned short k = 0;
+	for (unsigned short i = 0; i < _row-1 ; ++i) {
+		for (unsigned short j = 0; j < _col-1 ; ++j) {
 			TL = i * _col + j;
 			TR = i * _col + j + 1;
 			BL = (i + 1) * _col + j;

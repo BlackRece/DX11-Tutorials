@@ -1,0 +1,69 @@
+{
+  "planeCount": 15,
+
+  "default": {
+    "position": [ 0.0, -5.0, 0.0 ],
+    "scale": [ 1.0, 1.0, 1.0 ],
+    "dimension": [ 2, 4, 0.0 ],
+    "detail": [ 4, 2 ],
+    "textureID": 4,
+    "isHorizontal": false
+  },
+
+  "planes": [
+    {
+      "index": 14,
+      "position": [ 0.0, -20.0, 0.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "dimension": [ 20.0, 0.0, 20.0 ],
+      "detail": [ 10, 10 ],
+      "textureID": 0,
+      "isHorizontal": true
+    },
+    {
+      "index": 13,
+      "position": [ -20.0, -20.0, 0.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "dimension": [ 20.0, 0.0, 20.0 ],
+      "detail": [ 10, 10 ],
+      "textureID": 0,
+      "isHorizontal": true
+    },
+    {
+      "index": 12,
+      "position": [ 20.0, -20.0, 0.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "dimension": [ 20.0, 0.0, 20.0 ],
+      "detail": [ 10, 10 ],
+      "textureID": 0,
+      "isHorizontal": true
+    },
+    {
+      "index": 11,
+      "position": [ 0.0, -20.0, -20.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "dimension": [ 20.0, 0.0, 20.0 ],
+      "detail": [ 10, 10 ],
+      "textureID": 0,
+      "isHorizontal": true
+    },
+    {
+      "index": 10,
+      "position": [ 0.0, -20.0, 20.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "dimension": [ 20.0, 0.0, 20.0 ],
+      "detail": [ 10, 10 ],
+      "textureID": 0,
+      "isHorizontal": true
+    }
+  ],
+
+  "textures": [
+    "Textures/asphalt.dds",
+    "Textures/asphalt_SPEC.dds",
+    "Textures/asphalt_NORMAL.dds",
+    "Textures/asphalt_DISP.dds",
+    "Textures/Pine Tree.dds"
+  ]
+
+}

@@ -6,16 +6,38 @@ ModelObject::ModelObject() {
 
 	_vertexCount = 0;
 	_indexCount = 0;
+
+	_mesh = MeshArray();
+	_stride = 0;
+	_offset = 0;
 }
 
 ModelObject::~ModelObject() {
 	CleanUp();
 }
 
+void ModelObject::Clear() {
+	/*
+	_vertexBuffer = nullptr;
+	_indexBuffer = nullptr;
+
+	_vertexCount = 0;
+	_indexCount = 0;
+
+	_stride = 0;
+	_offset = 0;
+	*/
+
+	_mesh.Vertices.clear();
+	_mesh.Indices.clear();
+}
+
 // [ B3 ]
 HRESULT ModelObject::CreateVertexBuffer(ID3D11Device& device) {
-	if (_mesh.Vertices.size() < 1) 
+	if (_mesh.Vertices.size() < 1)
 		return E_NOT_SET;
+	else
+		_vertexCount = _mesh.Vertices.size();
 
 	_stride = sizeof(_mesh.Vertices[0]);
 	_offset = 0;
@@ -36,8 +58,10 @@ HRESULT ModelObject::CreateVertexBuffer(ID3D11Device& device) {
 
 // [ B3 ]
 HRESULT ModelObject::CreateIndexBuffer(ID3D11Device& device) {
-	if (_mesh.Indices.size() < 1) 
+	if (_mesh.Indices.size() < 1)
 		return E_NOT_SET;
+	else
+		_indexCount = _mesh.Indices.size();
 
 	D3D11_BUFFER_DESC ibd;
 	ZeroMemory(&ibd, sizeof(ibd));
@@ -149,6 +173,6 @@ void ModelObject::CalcNormals(std::vector<Vertex> verts, std::vector<unsigned sh
 }
 
 void ModelObject::CleanUp() {
-	if (_vertexBuffer != nullptr) _vertexBuffer->Release();
-	if (_indexBuffer != nullptr)_indexBuffer->Release();
+	if (_vertexBuffer) _vertexBuffer->Release();
+	if (_indexBuffer)_indexBuffer->Release();
 }

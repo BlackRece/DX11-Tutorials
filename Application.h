@@ -18,6 +18,12 @@ using namespace DirectX;
 
 class Application {
 private:
+	// config file paths
+	const string cameraFile =	"cameras.json";
+	const string cubeFile =		"cubes.json";
+	const string planeFile =	"planes.json";
+	const string pyramidFile =	"pyramids.json";
+
 	HINSTANCE					_hInst;
 	HWND						_hWnd;
 	D3D_DRIVER_TYPE				_driverType;
@@ -34,8 +40,6 @@ private:
 	ID3D11BlendState*			_Transparency;		//transparency
 
 	XMFLOAT4X4					_world;
-	XMFLOAT4X4					_view;
-	XMFLOAT4X4					_projection;
 
 	Camera*						_cam;				// array of cameras
 	int							_camNum;			// number of cameras
@@ -46,26 +50,37 @@ private:
 
 	ID3D11RasterizerState*		_wireFrame;
 	bool						_enableWireFrame;
+	float						_wireFrameDelay;
+	float						_wireFrameCount;
 
 	ID3D11RasterizerState*		_noCulling;
 	bool						_enableCulling;
 
 	//pyramid
+	int							_pyramidNum;
+	int							_uniPyramidNum;
 	GameObject					_pPyramidGO;
 	GameObject*					_pyramidGOs;
+	GameObject*					_uniquePyramidGOs;
 
 	//cube
 	int							_cubeNum;
+	int							_uniCubeNum;
 	GameObject					_pCubeGO;
 	GameObject*					_cubeGOs;
+	GameObject*					_uniqueCubeGOs;
 
 	//mixed array of game objects
 	GameObject*					_solarGOs;
 	int							_solarNum;
 
 	//plane
+	int							_planeHNum;
+	int							_planeVNum;
 	GameObject					_goHPlane;
 	GameObject					_goVPlane;
+	vector<GameObject>			_vertPlanes;
+	vector<GameObject>			_horiPlanes;
 	
 	float						_gTime;
 
@@ -77,14 +92,20 @@ private:
 	GameObject					_goCosmo;
 	GameObject					_goTorusKnot;
 	GameObject					_goDonut;
+	GameObject					_goShip;
 
 	//randomiser util
 	std::random_device			randDevice;	
 	std::normal_distribution<float> nd;
 
+public:
+	KeyboardFlags				_keys;
+
 private:
+	
 
 	HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
+	HRESULT InitCameras();
 	HRESULT InitShadersAndInputLayout();
 	HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
 	HRESULT InitDevice();
@@ -120,5 +141,8 @@ public:
 
 	void Update();
 	void Draw();
+
+	void OnKeyDown(MSG msg);
+	void OnKeyUp(MSG msg);
 };
 

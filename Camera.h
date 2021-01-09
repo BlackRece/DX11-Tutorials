@@ -14,8 +14,8 @@ public:
 	};
 private:
 	// Private attributes to store the camera position and view 
-	// volume
 
+	// volume
 	Vector3D _eye;
 	Vector3D _at;
 	Vector3D _to;
@@ -25,14 +25,13 @@ private:
 
 	std::vector<WayPoint> _points;
 	int _pointIndex;
-	bool _isUsingWayPoints;
 
 	bool _useLookTo;
 
 	float _farDepth;
 	float _nearDepth;
-	float _windowWidth;
-	float _windowHeight;
+	int _windowWidth;
+	int _windowHeight;
 
 	// camera movement speeds
 	float _rotateSpeed;
@@ -45,19 +44,23 @@ private:
 	XMFLOAT4X4 _projection;
 
 public:
+	bool _followPlayer;
+	bool _isUsingWayPoints;
 
 	//Constructor and destructor for the camera
 	Camera();
 	Camera(
 		Vector3D position, Vector3D at, Vector3D up,
-		float windowWidth, float windowHeight,
+		int windowWidth, int windowHeight,
 		float nearDepth, float farDepth,
-		float rotateSpeed = 0.001f, float translateSpeed = 0.001f);
+		float rotateSpeed = 0.0001f, float translateSpeed = 0.001f);
 	Camera(
 		XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up, 
 		float windowWidth, float windowHeight, 
 		float nearDepth, float farDepth);
 	~Camera();
+
+	void Load();
 
 	void AddWayPoint(WayPoint newPoint);
 	void AddWayPoint(Vector3D newPoint);
@@ -92,7 +95,7 @@ public:
 	// A function to reshape the camera volume if the window is 
 	// resized.
 	void Reshape(
-		float windowWidth, float windowHeight, 
+		int windowWidth, int windowHeight, 
 		float nearDepth, float farDepth
 	);
 

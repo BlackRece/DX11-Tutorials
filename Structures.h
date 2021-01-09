@@ -92,3 +92,8 @@ struct MeshArray {
 	std::vector<Vertex> Vertices;
 	std::vector<unsigned short> Indices;
 };
+
+struct KeyboardFlags {
+	bool UP, DOWN, LEFT, RIGHT;
+	bool WIRE;
+};

@@ -27,6 +27,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			theApp->Update();
             theApp->Draw();
         }
+
+        if (msg.message == WM_KEYDOWN)
+            theApp->OnKeyDown(msg);
+
+        if (msg.message == WM_KEYUP)
+            theApp->OnKeyUp(msg);
     }
 
 	delete theApp;

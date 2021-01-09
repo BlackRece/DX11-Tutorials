@@ -34,6 +34,7 @@ public:
 	Vector3D& operator/=(float value);  //assign new result to vector
 
 	Vector3D& operator=(const Vector3D& vec);
+	bool operator==(const Vector3D& vec);
 
 	//Vector operations
 	float dot_product(const Vector3D& vec); //scalar dot_product

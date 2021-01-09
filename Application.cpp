@@ -481,21 +481,6 @@ HRESULT Application::InitPlane() {
         }
     }
 
-    /*
-    hr = _goHPlane._model->CreatePlane(*_pd3dDevice, Vector3D(20,20,20), 4, 4);
-    if (FAILED(hr))
-        return hr;
-
-    //hr = _goVPlane._model->CreatePlane(*_pd3dDevice, Vector3D(10,10,10), 4, 4, false);
-    hr = _goVPlane._model->CreatePlane(
-        *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
-    );
-
-    if (FAILED(hr))
-        return hr;
-
-    _goVPlane.CreateTexture(*_pd3dDevice, "Textures/Pine Tree.dds");
-    */
     return hr;
 }
 
