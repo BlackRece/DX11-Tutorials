@@ -143,9 +143,9 @@ void PlaneGenerator::CreateIndices(MeshArray& meshData) {
 	unsigned short TL, TR, BL, BR;
 
 	// Iterate over each quad and compute indices.
-	unsigned int k = 0;
-	for (unsigned int i = 0; i < _row-1 ; ++i) {
-		for (unsigned int j = 0; j < _col-1 ; ++j) {
+	unsigned short k = 0;
+	for (unsigned short i = 0; i < _row-1 ; ++i) {
+		for (unsigned short j = 0; j < _col-1 ; ++j) {
 			TL = i * _col + j;
 			TR = i * _col + j + 1;
 			BL = (i + 1) * _col + j;

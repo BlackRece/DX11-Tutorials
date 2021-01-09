@@ -53,7 +53,7 @@ Application::Application()
     // wire frame
     _wireFrame = nullptr;
     _enableWireFrame = false;
-    _wireFrameDelay = 5;            // 5 second delay
+    _wireFrameDelay = 3;            // 5 second delay
     _wireFrameCount = 0;
 
     // back face culling
@@ -83,12 +83,6 @@ Application::Application()
     //solar system example
     _solarNum = 3;
     _solarGOs = new GameObject[_solarNum];
-
-    // [ B1 ]
-    //gameObjects with planes
-    //horizontal plane
-    _goHPlane._pos = Vector3D(0.0f, -10.0f, 7.0f);
-    _goHPlane._scale = Vector3D(1.0f, 1.0f, 1.0f);
 
     // [ B1 ]
     //vertical plane
