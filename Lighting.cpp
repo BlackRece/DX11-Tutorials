@@ -5,9 +5,9 @@ Lighting::Lighting() {
 	// Light direction from surface (XYZ)
 	lightDirection = XMFLOAT3(0.25f, 0.5f, -1.0f);
 	// Diffuse material properties (RGBA)
-	diffuseMaterial = XMFLOAT4(0.8f, 0.5f, 0.5f, 1.0f);
+	diffuseMaterial = XMFLOAT4(0.5f, 0.5f, 0.7f, 1.0f);
 	// Diffuse light colour (RGBA)
-	diffuseLight = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	diffuseLight = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 
 }
 

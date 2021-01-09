@@ -50,6 +50,8 @@ private:
 
 	ID3D11RasterizerState*		_wireFrame;
 	bool						_enableWireFrame;
+	float						_wireFrameDelay;
+	float						_wireFrameCount;
 
 	ID3D11RasterizerState*		_noCulling;
 	bool						_enableCulling;
@@ -78,6 +80,7 @@ private:
 	GameObject					_goHPlane;
 	GameObject					_goVPlane;
 	vector<GameObject>			_vertPlanes;
+	vector<GameObject>			_horiPlanes;
 	
 	float						_gTime;
 
@@ -94,6 +97,9 @@ private:
 	//randomiser util
 	std::random_device			randDevice;	
 	std::normal_distribution<float> nd;
+
+public:
+	KeyboardFlags				_keys;
 
 private:
 	
@@ -135,5 +141,8 @@ public:
 
 	void Update();
 	void Draw();
+
+	void OnKeyDown(MSG msg);
+	void OnKeyUp(MSG msg);
 };
 

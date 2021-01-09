@@ -18,10 +18,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PostQuitMessage(0);
             break;
 
-        case WM_KEYDOWN:
-
-            break;
-
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -57,6 +53,8 @@ Application::Application()
     // wire frame
     _wireFrame = nullptr;
     _enableWireFrame = false;
+    _wireFrameDelay = 5;            // 5 second delay
+    _wireFrameCount = 0;
 
     // back face culling
     _noCulling = nullptr;
@@ -96,7 +94,7 @@ Application::Application()
     //vertical plane
     _goVPlane._pos = Vector3D(0.0f, 0.0f, 12.5f);
     _goVPlane._scale = Vector3D(1.0f, 1.0f, 1.0f);
-    _vertPlanes.clear();
+    //_vertPlanes.clear();
 
     _gTime = 0.0f;
 
@@ -125,9 +123,10 @@ Application::Application()
 
     _pLight.SpecularLight = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
     _pLight.SpecularMaterial = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-    _pLight.SpecularPower = 5.0f;
+    _pLight.SpecularPower = 4.0f;
 
-    
+    //keyboard inputs
+    _keys = { false,false,false,false };
 
     //setup random engine for cubes
     std::mt19937 rnd(randDevice());
@@ -338,25 +337,24 @@ HRESULT Application::InitPlane() {
     }
 
     // build array of plane gameObjects
-    //GameObject* planeGO = new GameObject();
-    //_goVPlane = new GameObject[_planeVNum];
-    //_goHPlane = new GameObject[_planeHNum];
+    //vertical
     _vertPlanes = vector<GameObject>();
     _vertPlanes.clear();
     _vertPlanes.resize(_planeVNum);
 
+    //horizontal
+    _horiPlanes = vector<GameObject>();
+    _horiPlanes.clear();
+    _horiPlanes.resize(_planeHNum);
+
     int tID = 0;
     int k = 0;
-    Vector3D pos, scale, angle, dim, last_dim;
-    XMFLOAT2 detail{}, last_detail{};
+    Vector3D pos, scale, angle, dim;
+    XMFLOAT2 detail{};
     string texturePath;
-    bool isHori = false, last_isHori = false;
+    bool isHori = false;
 
     for (int i = 0; i < int(_planeVNum + _planeHNum); i++) {
-        last_dim = dim;
-        last_detail = detail;
-        last_isHori = isHori;
-
         //reset vars
         tID = 0;
         pos = Vector3D();
@@ -451,24 +449,7 @@ HRESULT Application::InitPlane() {
         }
 
         if (i < _planeVNum) {
-            //_goVPlane = GameObject();
-            /*
-            if(
-                last_detail.x == detail.x &&
-                last_detail.y == detail.y &&
-                last_dim == dim &&
-                last_isHori == isHori) {
-
-            } else {
-                planeGO = new GameObject();
-                hr = planeGO->_model->CreatePlane(
-                    *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
-                );
-
-                if (FAILED(hr))
-                    return hr;
-            }
-            */
+           
             hr = _vertPlanes[i]._model->CreatePlane(
                 *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
             );
@@ -482,65 +463,25 @@ HRESULT Application::InitPlane() {
             _vertPlanes[i]._scale = scale;
             _vertPlanes[i]._angle = angle;
 
-        }
-
-        /*
-        if (i < _planeVNum) {
-            planeGO = GameObject();
-            
-            planeGO.CreateTexture(*_pd3dDevice, texturePath);
-
-            planeGO._pos = pos;
-            planeGO._scale = scale;
-            planeGO._angle = angle;
-
-            hr = planeGO._model->CreatePlane(
+        } else {
+            hr = _horiPlanes[k]._model->CreatePlane(
                 *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
             );
 
             if (FAILED(hr))
                 return hr;
 
-            _vertPlanes.push_back(planeGO);
+            _horiPlanes[k].CreateTexture(*_pd3dDevice, texturePath);
+
+            _horiPlanes[k]._pos = pos;
+            _horiPlanes[k]._scale = scale;
+            _horiPlanes[k]._angle = angle;
+
+            k++;
         }
-        */
-        /*
-        planeGO = GameObject();
-        hr = planeGO._model->CreatePlane(
-            *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
-        );
-        
-        if (i < _planeVNum) {
-            _goVPlane[i] = GameObject();
-            hr = _goVPlane[i]._model->CreatePlane(
-                *_pd3dDevice, dim, (int)detail.x, (int)detail.y, isHori
-            );
-
-            _goVPlane[i].CreateTexture(*_pd3dDevice, texturePath);
-
-            _goVPlane[i]._model = planeGO._model;
-
-            _goVPlane[i]._pos = pos;
-            _goVPlane[i]._scale = scale;
-            _goVPlane[i]._angle = angle;
-        } else {
-            _goHPlane[k] = GameObject();
-
-            _goHPlane[k].CreateTexture(*_pd3dDevice, texturePath);
-
-            _goHPlane[k]._model = planeGO._model;
-
-            _goHPlane[k]._pos = pos;
-            _goHPlane[k]._scale = scale;
-            _goHPlane[k]._angle = angle;
-
-            if (k < _planeHNum) k++;
-        }
-        */
-        if (FAILED(hr))
-            return hr;
     }
 
+    /*
     hr = _goHPlane._model->CreatePlane(*_pd3dDevice, Vector3D(20,20,20), 4, 4);
     if (FAILED(hr))
         return hr;
@@ -554,6 +495,7 @@ HRESULT Application::InitPlane() {
         return hr;
 
     _goVPlane.CreateTexture(*_pd3dDevice, "Textures/Pine Tree.dds");
+    */
     return hr;
 }
 
@@ -897,7 +839,7 @@ HRESULT Application::InitPyramidGO() {
 
 HRESULT Application::InitWindow(HINSTANCE hInstance, int nCmdShow)
 {
-    // Register class
+    // Register window class
     WNDCLASSEX wcex{};
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -924,6 +866,15 @@ HRESULT Application::InitWindow(HINSTANCE hInstance, int nCmdShow)
                          nullptr);
     if (!_hWnd)
 		return E_FAIL;
+
+    // Register raw input class
+    RAWINPUTDEVICE rid{};
+    rid.usUsagePage = 0x01;
+    rid.usUsage = 0x02;
+    rid.dwFlags = 0;
+    rid.hwndTarget = _hWnd;
+    //rid.hwndTarget = nullptr;
+    RegisterRawInputDevices(&rid, 1, sizeof(rid)); // don't care if it fails
 
     ShowWindow(_hWnd, nCmdShow);
 
@@ -1269,8 +1220,15 @@ void Application::Update() {
 void Application::UpdateInput(float t) {
     //keyboard input
     // should be handled by window not graphics
-    if (GetKeyState('X') & 0x8000) {
-        _enableWireFrame = (_enableWireFrame) ? false : true;
+    //if (GetKeyState('X') & 0x8000) {
+    if (_wireFrameCount < 1) {
+        if(_keys.WIRE){
+            _enableWireFrame = (_enableWireFrame) ? false : true;
+            _wireFrameCount = _wireFrameDelay;
+        }
+    } else {
+        if(_wireFrameCount > 0)
+            _wireFrameCount -= t / 1000;
     }
 
     // camera switching
@@ -1441,7 +1399,7 @@ void Application::UpdateModels(float t) {
 // Update Planes GameObjects
 //
 void Application::UpdatePlanes(float t) {
-    
+    /*
     _goHPlane.Update(t);
 
     _goVPlane._angle.y = atan2(
@@ -1450,8 +1408,15 @@ void Application::UpdatePlanes(float t) {
     );
 
     _goVPlane.Update(t);
+    */
 
     vector<GameObject>::iterator it;
+    // horizontal planes
+    for (it = _horiPlanes.begin(); it != _horiPlanes.end(); ++it) {
+        it->Update(t);
+    }
+
+    // vertical planes
     float x = -(_planeVNum * 0.5f);
     for (it = _vertPlanes.begin(); it != _vertPlanes.end(); ++it) {
         it->_pos.x = x;
@@ -1643,17 +1608,15 @@ void Application::Draw()
         _solarGOs[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     }
 
-    // floor (plane array)
+    // plane arrays
     // [ C2 ]
-    /*
-    for(int i=0;i<_planeHNum;i++)
-        _goHPlane[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
-    */
-    _goHPlane.Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    //_goHPlane.Draw(_pImmediateContext, _pConstantBuffer, cbl);
     vector<GameObject>::iterator it;
-    for (it = _vertPlanes.begin(); it != _vertPlanes.end(); ++it) {
+    for (it = _horiPlanes.begin(); it != _horiPlanes.end(); ++it)
         it->Draw(_pImmediateContext, _pConstantBuffer, cbl);
-    }
+
+    for (it = _vertPlanes.begin(); it != _vertPlanes.end(); ++it) 
+        it->Draw(_pImmediateContext, _pConstantBuffer, cbl);
 
     //
     // Transparency option (CUSTOM)
@@ -1695,7 +1658,7 @@ void Application::Draw()
     for(int i=0;i<_planeVNum;i++)
         _goVPlane[i].Draw(_pImmediateContext, _pConstantBuffer, cbl);
     */
-    _goVPlane.Draw(_pImmediateContext, _pConstantBuffer, cbl);
+    //_goVPlane.Draw(_pImmediateContext, _pConstantBuffer, cbl);
     
     //
     // Render cube array
@@ -1725,4 +1688,24 @@ XMFLOAT4 Application::XMFLoat4Multiply(XMFLOAT4& lhs, XMFLOAT4& rhs) {
     XMStoreFloat4(&result, tLhs * tRhs);
 
     return result;
+}
+
+void Application::OnKeyDown(MSG msg){
+    unsigned char repeat = 0x40000000;
+    switch (msg.wParam) {
+    case 'W': _keys.UP = true; break;
+    case 'A': _keys.LEFT = true; break;
+    case 'S': _keys.DOWN = true; break;
+    case 'D': _keys.RIGHT = true; break;
+    case 'X': _keys.WIRE = true; break;
+    }
+}
+void Application::OnKeyUp(MSG msg) {
+    switch (msg.wParam) {
+    case 'W': _keys.UP = false; break;
+    case 'A': _keys.LEFT = false; break;
+    case 'S': _keys.DOWN = false; break;
+    case 'D': _keys.RIGHT = false; break;
+    case 'X': _keys.WIRE = false; break;
+    }
 }
