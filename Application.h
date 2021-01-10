@@ -45,6 +45,7 @@ private:
 	int							_camNum;			// number of cameras
 	int							_camSelected;		// index of selected camera
 	bool						_camSwitched;		// has cam been switched?
+	bool						_mouseLook;
 
 	ID3D11DepthStencilView*		_depthStencilView;
 	ID3D11Texture2D*			_depthStencilBuffer;
@@ -104,6 +105,7 @@ private:
 
 public:
 	KeyboardFlags				_keys;
+	MouseDelta					_mouse;
 
 private:
 	
@@ -149,5 +151,6 @@ public:
 
 	void OnKeyDown(MSG msg);
 	void OnKeyUp(MSG msg);
+	void Application::OnMouse(LONG mouseX, LONG mouseY);
 };
 

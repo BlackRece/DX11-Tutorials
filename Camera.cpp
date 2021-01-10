@@ -160,15 +160,7 @@ void Camera::MoveSidewards(float sideward) {
 
     if (!_useLookTo) {
         // [ E3 ]
-        /*
-        _angle.y += step * _rotateSpeed;
         
-        float dist = _at.distance(_eye);
-
-        _eye.x = dist * cos(_angle.y);
-        _eye.z = dist * sin(_angle.y);
-        */
-
         Vector3D vup = _up.normalization();
         XMVECTOR upNormal = XMVectorSet(vup.x, vup.y, vup.z, 0.0f);
         XMVECTOR pos = XMVectorSet(_eye.x, _eye.y, _eye.z, 0.0f);
@@ -214,26 +206,25 @@ void Camera::Reshape(
     SetProjection(XM_PIDIV2, float(_windowWidth / _windowHeight), _nearDepth, _farDepth);
 }
 
-void Camera::Rotate(float xAxis, float yAxis, float zAxis) {
-    Rotate(Vector3D(xAxis, yAxis, zAxis));
-}
-void Camera::Rotate(Vector3D angles) {
-    RotateX(angles.x);
-    RotateY(angles.y);
-    RotateZ(angles.z);
-}
-
-void Camera::RotateX(float xAxis) {
-    _angle.x = xAxis;
-    SetView(XMMatrixMultiply(GetView(), XMMatrixRotationX(xAxis)));
-}
-void Camera::RotateY(float yAxis) {
-    _angle.y = yAxis;
-    SetView(XMMatrixMultiply(GetView(), XMMatrixRotationY(yAxis)));
-}
-void Camera::RotateZ(float zAxis) {
-    _angle.z = zAxis;
-    SetView(XMMatrixMultiply(GetView(), XMMatrixRotationZ(zAxis)));
+Vector3D Camera::Rotate(float angle, Vector3D axis, Vector3D origin) {
+    Vector3D vangle = axis.normalization();
+    XMVECTOR normal = XMVectorSet(vangle.x, vangle.y, vangle.z, 0.0f);
+    XMVECTOR pos = XMVectorSet(origin.x, origin.y, origin.z, 0.0f);
+    XMMATRIX rotation =
+        XMMatrixRotationNormal(normal, angle * _rotateSpeed);
+    XMVECTOR result = XMVector3Transform(pos, rotation);
+    /*
+    Vector3D neweye = Vector3D(
+        XMVectorGetX(result),
+        XMVectorGetY(result),
+        XMVectorGetZ(result)
+    );
+    */
+    return Vector3D(
+        XMVectorGetX(result),
+        XMVectorGetY(result),
+        XMVectorGetZ(result)
+    );
 }
 
 void Camera::SetLookAt(Vector3D at) {

@@ -98,10 +98,15 @@ struct KeyboardFlags {
 	bool WIRE;
 	bool NEXTCAM, PREVCAM;
 	bool DEFAULTCAM, WAYPOINTCAM, PLAYERCAM;
+	bool MOUSELOOK;
 	/*
 	KeyboardFlags() {}
 	KeyboardFlags(bool state) {
 		std::fill(&UP, &PREVCAM + 1, state);
 	}
 	*/
+};
+
+struct MouseDelta {
+	int x, y;
 };

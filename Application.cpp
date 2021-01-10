@@ -117,6 +117,10 @@ Application::Application()
     _keys = { false };
     _camSwitched = false;
 
+    //mouse inputs
+    _mouse = { 0,0 };
+    _mouseLook = false;
+
     //setup random engine for cubes
     std::mt19937 rnd(randDevice());
     
@@ -1247,10 +1251,18 @@ void Application::UpdateInput(float t) {
             _enableWireFrame = (_enableWireFrame) ? false : true;
             _wireFrameCount = _wireFrameDelay;
         }
+
+        //toggle mouse inputs
+        if (_keys.MOUSELOOK) {
+            _mouseLook = !_mouseLook;
+            _wireFrameCount = _wireFrameDelay;
+        }
     } else {
         if(_wireFrameCount > 0)
             _wireFrameCount -= t / 1000;
     }
+
+    
 
     // camera switching
     if (!_camSwitched) {
@@ -1347,6 +1359,40 @@ void Application::UpdateInput(float t) {
         //right
         if(_keys.RIGHT){
             _cam[_camSelected].MoveSidewards(t);
+        }
+
+        if (_cam[_camSelected]._followPlayer && _mouseLook) {
+            float angle = (t / 1000);
+            Vector3D axis = _cam[_camSelected].GetAngle();
+            /*
+            if (_mouse.x > 0) axis.y += angle;
+            else if (_mouse.x < 0) axis.y -= angle;
+
+            if (_mouse.y > 0) axis.x += angle;
+            else if (_mouse.y < 0) axis.x -= angle;
+            
+            float ay = (_mouse.y == 0)? 0 : _mouse.y / _mouse.y;
+            float ax = (_mouse.x == 0)? 0 : _mouse.x / _mouse.x;
+
+            if (_mouse.y < 0) ay * -1.0f;
+            if (_mouse.x < 0) ax * -1.0f;
+
+            Vector3D axis = Vector3D(ax, ay, 0.0f);
+                _mouse.x * (XM_PI * 180),
+                _mouse.y * (XM_PI * 180),
+                0.0f
+            );
+            */
+
+            axis.y += _mouse.x / _WindowWidth;
+            axis.x += _mouse.y / _WindowHeight;
+
+            _cam[_camSelected].SetPos(
+                _cam[_camSelected].Rotate(
+                    angle, axis,
+                    _cam[_camSelected].GetPos()
+                )
+            );
         }
     }
 }
@@ -1733,6 +1779,8 @@ void Application::OnKeyDown(MSG msg){
     case '1': _keys.DEFAULTCAM = true; break;   // switch to deafult cam
     case '2': _keys.WAYPOINTCAM = true; break;  // switch to way point cam
     case '0': _keys.PLAYERCAM = true; break;    // switch to player cam
+
+    case VK_SPACE:_keys.MOUSELOOK = true; break;
     }
 }
 void Application::OnKeyUp(MSG msg) {
@@ -1749,5 +1797,11 @@ void Application::OnKeyUp(MSG msg) {
     case '1': _keys.DEFAULTCAM = false; break;   // switch to deafult cam
     case '2': _keys.WAYPOINTCAM = false; break;  // switch to way point cam
     case '0': _keys.PLAYERCAM = false; break;    // switch to player cam
+
+    case VK_SPACE:_keys.MOUSELOOK = false; break;
     }
+}
+
+void Application::OnMouse(LONG mouseX, LONG mouseY) {
+    _mouse = { (int)mouseX, (int)mouseY };
 }

@@ -89,12 +89,8 @@ public:
 	void MoveSidewards(float sideward);
 	void MoveTo(Vector3D point, float speed);
 
-	void Rotate(float xAxis, float yAxis, float zAxis);
-	void Rotate(Vector3D angles);
-	void RotateX(float xAxis);
-	void RotateY(float yAxis);
-	void RotateZ(float zAxis);
-
+	Vector3D Camera::Rotate(float angle, Vector3D axis, Vector3D origin);
+	
 	// A function to reshape the camera volume if the window is 
 	// resized.
 	void Reshape(
