@@ -44,6 +44,8 @@ private:
 	Camera*						_cam;				// array of cameras
 	int							_camNum;			// number of cameras
 	int							_camSelected;		// index of selected camera
+	bool						_camSwitched;		// has cam been switched?
+	bool						_mouseLook;
 
 	ID3D11DepthStencilView*		_depthStencilView;
 	ID3D11Texture2D*			_depthStencilBuffer;
@@ -98,8 +100,12 @@ private:
 	std::random_device			randDevice;	
 	std::normal_distribution<float> nd;
 
+	//debug
+	float	TICKRIGHT;
+
 public:
 	KeyboardFlags				_keys;
+	MouseDelta					_mouse;
 
 private:
 	
@@ -118,6 +124,7 @@ private:
 	float GetDeltaTime();
 	void UpdateInput(float t);
 	void UpdateBillBoards(float t, GameObject* gObjs, int objCount);
+	void UpdateCameras(float t);
 	void UpdateCubes(float t);
 	void UpdateModels(float t);
 	void UpdatePlanes(float t);
@@ -144,5 +151,6 @@ public:
 
 	void OnKeyDown(MSG msg);
 	void OnKeyUp(MSG msg);
+	void Application::OnMouse(LONG mouseX, LONG mouseY);
 };
 

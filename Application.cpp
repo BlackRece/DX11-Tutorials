@@ -84,18 +84,6 @@ Application::Application()
     _solarNum = 3;
     _solarGOs = new GameObject[_solarNum];
 
-    // [ B1 ]
-    //gameObjects with planes
-    //horizontal plane
-    _goHPlane._pos = Vector3D(0.0f, -10.0f, 7.0f);
-    _goHPlane._scale = Vector3D(1.0f, 1.0f, 1.0f);
-
-    // [ B1 ]
-    //vertical plane
-    _goVPlane._pos = Vector3D(0.0f, 0.0f, 12.5f);
-    _goVPlane._scale = Vector3D(1.0f, 1.0f, 1.0f);
-    //_vertPlanes.clear();
-
     _gTime = 0.0f;
 
     // [ B1 ]
@@ -112,7 +100,7 @@ Application::Application()
     _goDonut._scale = Vector3D(1.0f, 1.0f, 1.0f);
 
     // [ B1 ]
-    _goShip._pos = Vector3D(0.0f, -5.0f, -10.0f);
+    _goShip._pos = Vector3D(0.0f, -19.0f, -10.0f);
     _goShip._scale = Vector3D(0.0010f, 0.0010f, 0.0010f);
 
     //lighting
@@ -126,11 +114,18 @@ Application::Application()
     _pLight.SpecularPower = 4.0f;
 
     //keyboard inputs
-    _keys = { false,false,false,false };
+    _keys = { false };
+    _camSwitched = false;
+
+    //mouse inputs
+    _mouse = MouseDelta();
+    _mouseLook = false;
 
     //setup random engine for cubes
     std::mt19937 rnd(randDevice());
     
+    //debug
+    TICKRIGHT = 5.0f;
 }
 
 Application::~Application() {
@@ -262,7 +257,7 @@ HRESULT Application::InitCameras() {
                 jsonCam["cameras"][i]["up"][1].get<float>(),
                 jsonCam["cameras"][i]["up"][2].get<float>()
             );
-        }
+        } else up = Vector3D(0.0f, 1.0f, 0.0f);
 
         if (jsonCam["cameras"][i].contains("at")) {
             at = Vector3D(
@@ -270,26 +265,34 @@ HRESULT Application::InitCameras() {
                 jsonCam["cameras"][i]["at"][1].get<float>(),
                 jsonCam["cameras"][i]["at"][2].get<float>()
             );
-        }
+        } else at = Vector3D();
 
         _cam[i] = Camera(eye, at, up,
             (int)_WindowWidth, (int)_WindowHeight,
-            jsonCam["cameras"][i]["near"],
-            jsonCam["cameras"][i]["far"]
+            jsonCam["cameras"][i]["near"].get<float>(),
+            jsonCam["cameras"][i]["far"].get<float>()
         );
 
         if (jsonCam["cameras"][i].contains("UseLookTo")) {
-            _cam[i].UseLookTo(true);
+            _cam[i].UseLookTo(
+                jsonCam["cameras"][i]["UseLookTo"].get<bool>()
+            );
+        } else {
+            _cam[i].UseLookTo(false);
+        }
 
+        if (_cam[i].UseLookTo()) {
             _cam[i].SetLookTo(Vector3D(
                 jsonCam["cameras"][i]["to"][0].get<float>(),
                 jsonCam["cameras"][i]["to"][1].get<float>(),
                 jsonCam["cameras"][i]["to"][2].get<float>()
             ));
+        }
 
-            _cam[i].SetView();
+        if (jsonCam["cameras"][i].contains("LookAtTarget")) {
+            _cam[i]._lookAtTarget = true;
         } else {
-            _cam[i].UseLookTo(false);
+            _cam[i]._lookAtTarget = false;
         }
 
         if (jsonCam["cameras"][i].contains("UseWayPoints")) {
@@ -308,12 +311,51 @@ HRESULT Application::InitCameras() {
 
         if (jsonCam["cameras"][i].contains("follow")) {
             _cam[i]._followPlayer = jsonCam["cameras"][i]["follow"].get<bool>();
-            _cam[i].SetLookTo(_cam[i].GetPos());
         } else {
             _cam[i]._followPlayer = false;
         }
+
+        if (jsonCam["cameras"][i].contains("offset")) {
+            _cam[i].SetOffset(Vector3D(
+                jsonCam["cameras"][i]["offset"][0].get<float>(),
+                jsonCam["cameras"][i]["offset"][1].get<float>(),
+                jsonCam["cameras"][i]["offset"][2].get<float>()
+            ));
+        } else {
+            _cam[i].SetOffset(Vector3D());
+        }
+
+        if(_cam[i]._followPlayer){
+            float range = 10.0f;
+            if (jsonCam["cameras"][i].contains("range")) {
+                range = jsonCam["cameras"][i]["range"].get<float>();
+            }
+
+            // set initial cam position
+            _cam[i].SetPos(_goShip._pos + _cam[i].GetOffset());
+
+            // set initial lookAt vector
+            Vector3D forward = _cam[i].GetForward(
+                _cam[i].GetUp(),
+                _cam[i].GetPos()
+            );
+
+            _cam[i].SetLookTo(forward);
+            _cam[i].SetLookAt(forward * range);
+        } 
+
+        if (jsonCam["cameras"][i].contains("speed")) {
+            _cam[i].SetSpeed(
+                jsonCam["cameras"][i]["speed"]["rotate"].get<float>(),
+                jsonCam["cameras"][i]["speed"]["translate"].get<float>()
+            );
+        }
     }
     
+    eye = _cam[_camSelected].GetPos();
+    if (eye == Vector3D())
+        eye.z = 1.0f;
+
     return hr;
 }
 
@@ -379,9 +421,9 @@ HRESULT Application::InitPlane() {
         );
 
         dim = Vector3D(
-            jp["default"]["dimension"][0].get<int>(),
-            jp["default"]["dimension"][1].get<int>(),
-            jp["default"]["dimension"][2].get<int>()
+            jp["default"]["dimension"][0].get<float>(),
+            jp["default"]["dimension"][1].get<float>(),
+            jp["default"]["dimension"][2].get<float>()
         );
 
         detail = XMFLOAT2{
@@ -1168,6 +1210,8 @@ void Application::Update() {
 
     // [ E1, E2, E3 ]
     UpdateInput(t);
+
+    UpdateCameras(t);
     
     UpdateSolar(t, 
         &_solarGOs[0]._matrix,      // sun
@@ -1189,26 +1233,51 @@ void Application::Update() {
     //player
     _goShip.Update(t);
 
-    // Update our cameras
-    if (_camSelected == 4) {
-        _cam[_camSelected].SetView(_cubeGOs[1]._matrix);
+}
+
+void Application::UpdateCameras(float t) {
+    
+    Vector3D eye = _cam[_camSelected].GetPos();
+    if (eye == Vector3D()) {
+        _cam = _cam;
+        eye.z = 10.0f;
+        return;
     }
+
+    // Update chase cameras
+    if (_cam[_camSelected]._lookAtTarget) {
+        _cam[_camSelected].SetLookAt
+            (_uniquePyramidGOs[_uniPyramidNum-1]._pos);
+    }
+
     // Update player camera
     if (_cam[_camSelected]._followPlayer) {
-        _cam[_camSelected].
-            SetPos(_goShip._pos + _cam[_camSelected].GetLookTo());
+        float angle = -_cam[_camSelected].GetAngle().y;
+        Vector3D axis = _cam[_camSelected].GetUp();
+        Vector3D offset = 
+            _cam[_camSelected].Rotate(
+                angle, axis,
+                _cam[_camSelected].GetPos() - _cam[_camSelected].GetOffset()
+            );
+        
+        _goShip._pos = offset;
+        _goShip._angle = _cam[_camSelected].GetAngle();
     }
 
     _cam[_camSelected].Update();
 }
 
 void Application::UpdateInput(float t) {
-    //keyboard input
-    // should be handled by window not graphics
-    //if (GetKeyState('X') & 0x8000) {
+    //toggle wire frame
     if (_wireFrameCount < 1) {
         if(_keys.WIRE){
             _enableWireFrame = (_enableWireFrame) ? false : true;
+            _wireFrameCount = _wireFrameDelay;
+        }
+
+        //toggle mouse inputs
+        if (_keys.MOUSELOOK) {
+            _mouseLook = !_mouseLook;
             _wireFrameCount = _wireFrameDelay;
         }
     } else {
@@ -1217,102 +1286,158 @@ void Application::UpdateInput(float t) {
     }
 
     // camera switching
-    if (GetKeyState('Q') & 0x8000) {
+    if (!_camSwitched) {
+
         // next cam
-        if (_camSelected < _camNum)
-            _camSelected++;
-        else
+        if (_keys.NEXTCAM) {
+            if (_camSelected < _camNum)
+                _camSelected++;
+            else
+                _camSelected = 0;
+
+            _camSwitched = true;
+        }
+
+        // prev cam
+        if (_keys.PREVCAM) {
+            if (_camSelected > 0)
+                _camSelected--;
+            else
+                _camSelected = _camNum;
+
+            _camSwitched = true;
+        }
+
+        // default cam
+        if (_keys.DEFAULTCAM) {
             _camSelected = 0;
 
-    }
+            _camSwitched = true;
+        }
 
-    if (GetKeyState('E') & 0x8000) {
-        // prev cam
-        if (_camSelected > 0)
-            _camSelected--;
-        else
-            _camSelected = _camNum;
-    }
-
-    if (GetKeyState('1') & 0x8000) {
-        // default cam
-        _camSelected = 0;
-    }
-
-    if (GetKeyState('2') & 0x8000) {
         // switch between waypoint cam(s)
-        int nextCam = _camSelected;
-        int endCam = _camSelected;
-        do {
-            if (nextCam >= _camNum) nextCam = 0;
-            else nextCam++;
+        if (_keys.WAYPOINTCAM) {
+            int nextCam = _camSelected;
+            int endCam = _camSelected;
 
-            if (_cam[nextCam]._isUsingWayPoints) {
-                _camSelected = nextCam;
-                break;
-            }
-        } while (nextCam != endCam);
-    }
+            do {
+                if (nextCam >= _camNum) nextCam = 0;
+                else nextCam++;
 
-    if (GetKeyState('0') & 0x8000) {
+                if (_cam[nextCam]._isUsingWayPoints) {
+                    _camSelected = nextCam;
+                    break;
+                }
+            } while (nextCam != endCam);
+
+            _camSwitched = true;
+        }
+
         // switch between player cam(s)
-        int nextCam = _camSelected;
-        int endCam = _camSelected;
-        do {
-            if (nextCam >= _camNum) nextCam = 0;
-            else nextCam++;
+        if (_keys.PLAYERCAM) {
+            int nextCam = _camSelected;
+            int endCam = _camSelected;
 
-            if (_cam[nextCam]._followPlayer) {
-                _camSelected = nextCam;
-                break;
-            }
-        } while (nextCam != endCam);
+            do {
+                if (nextCam >= _camNum) nextCam = 0;
+                else nextCam++;
+
+                if (_cam[nextCam]._followPlayer) {
+                    _camSelected = nextCam;
+                    break;
+                }
+            } while (nextCam != endCam);
+
+            _camSwitched = true;
+        }
+
+    } else {
+        if (!_keys.NEXTCAM && !_keys.PREVCAM &&
+            !_keys.WAYPOINTCAM && !_keys.PLAYERCAM) {
+            _camSwitched = false;
+        }
     }
 
     // [ E1, E2 ]
     // camera movement
     if (!_cam[_camSelected]._isUsingWayPoints) {
-        if (GetKeyState('W') & 0x8000) {
-            //forward
-            if (_cam[_camSelected]._followPlayer) {
-
-            } else {
-                _cam[_camSelected].MoveForward(t);
-                _cam[_camSelected].SetView();
-
-            }
+        //forward
+        if(_keys.UP){
+            _cam[_camSelected].MoveForward(t);
+            //_cam[_camSelected].SetView();
         }
-        if (GetKeyState('S') & 0x8000) {
-            //backward
-            if (_cam[_camSelected]._followPlayer) {
 
-            } else {
-                _cam[_camSelected].MoveForward(-t);
-                _cam[_camSelected].SetView();
-
-            }
+        //backward
+        if(_keys.DOWN){
+            _cam[_camSelected].MoveForward(-t);
+            //_cam[_camSelected].SetView();
         }
-        if (GetKeyState('A') & 0x8000) {
-            //left
-            if (_cam[_camSelected]._followPlayer) {
 
-            } else {
-                _cam[_camSelected].MoveSidewards(-t);
-            }
+        //left
+        if(_keys.LEFT){
+            _cam[_camSelected].MoveSidewards(-t);
         }
-        if (GetKeyState('D') & 0x8000) {
-            //right
-            if (_cam[_camSelected]._followPlayer) {
-
-            } else {
-                _cam[_camSelected].MoveSidewards(t);
-            }
+        
+        //right
+        if(_keys.RIGHT){
+            _cam[_camSelected].MoveSidewards(t);
         }
-    }
 
-    if (GetKeyState(' ') & 0x8000) {
-        //reset current cam
-        _cam[_camSelected].SetView();
+        
+
+        if (_mouseLook) {
+            float angle = (t / 1000);
+            int mx, my;
+            Vector3D axis = Vector3D();
+            Vector3D offset = Vector3D();
+
+            _mouse.Diff(mx, my);
+
+            //up first
+            //set unit vector to rotate around
+            if (mx < 0) {
+                axis.y--;
+                angle * -1.0f;
+            } else {
+                axis.y++;
+            }
+
+            offset = _cam[_camSelected].
+                Rotate(angle, axis, _goShip._pos);
+
+            _cam[_camSelected].SetPos(
+                offset + _cam[_camSelected].GetOffset()
+            );
+
+            /*
+            if (_mouse.y > 0) axis.x += angle;
+            else if (_mouse.y < 0) axis.x -= angle;
+
+            float ay = (_mouse.y == 0)? 0 : _mouse.y / _mouse.y;
+            float ax = (_mouse.x == 0)? 0 : _mouse.x / _mouse.x;
+
+            if (_mouse.y < 0) ay * -1.0f;
+            if (_mouse.x < 0) ax * -1.0f;
+
+            Vector3D axis = Vector3D(ax, ay, 0.0f);
+                _mouse.x * (XM_PI * 180),
+                _mouse.y * (XM_PI * 180),
+                0.0f
+            );
+
+            axis.y += _mouse.x / _WindowWidth;
+            axis.x += _mouse.y / _WindowHeight;
+
+            _cam[_camSelected].SetPos(
+                _cam[_camSelected].Rotate(
+                    angle, axis,
+                    _cam[_camSelected].GetPos()
+                )
+            );
+            */
+
+
+        }
     }
 }
 
@@ -1384,17 +1509,6 @@ void Application::UpdateModels(float t) {
 // Update Planes GameObjects
 //
 void Application::UpdatePlanes(float t) {
-    /*
-    _goHPlane.Update(t);
-
-    _goVPlane._angle.y = atan2(
-        _goVPlane._pos.x - _cam[_camSelected].GetPos().x,
-        _goVPlane._pos.z - _cam[_camSelected].GetPos().z
-    );
-
-    _goVPlane.Update(t);
-    */
-
     vector<GameObject>::iterator it;
     // horizontal planes
     for (it = _horiPlanes.begin(); it != _horiPlanes.end(); ++it) {
@@ -1402,11 +1516,29 @@ void Application::UpdatePlanes(float t) {
     }
 
     // vertical planes
-    float x = -(_planeVNum * 0.5f);
-    for (it = _vertPlanes.begin(); it != _vertPlanes.end(); ++it) {
-        it->_pos.x = x;
-        x++;
+    if (!_cam[_camSelected]._followPlayer) {
+        float x = -(_planeVNum * 0.5f);
+        for (it = _vertPlanes.begin(); it != _vertPlanes.end(); ++it) {
+            it->_pos.x = x;
+            x++;
+        }
+    } else {
+        float tx = 0, tz = _planeVNum / 0.5f;
+        for (int i = 0; i < _planeVNum; i++) {
+            tz = float((i * 1.5f) - (_planeVNum / 2.0f));
+            if (i % 2 == 0) {
+                tx = -8.0f;
+            } else {
+                tx = 8.0f;
+            }
 
+            _vertPlanes[i]._pos.x = tx;
+            _vertPlanes[i]._pos.z = tz;
+        }
+    }
+
+    //billboarding
+    for (it = _vertPlanes.begin(); it != _vertPlanes.end(); ++it) {
         it->_angle.y = atan2(
             it->_pos.x - _cam[_camSelected].GetPos().x,
             it->_pos.z - _cam[_camSelected].GetPos().z
@@ -1676,13 +1808,23 @@ XMFLOAT4 Application::XMFLoat4Multiply(XMFLOAT4& lhs, XMFLOAT4& rhs) {
 }
 
 void Application::OnKeyDown(MSG msg){
-    unsigned char repeat = 0x40000000;
+    //unsigned char repeat = (char)0x40000000;
     switch (msg.wParam) {
+    // movement (cam and player)
     case 'W': _keys.UP = true; break;
     case 'A': _keys.LEFT = true; break;
     case 'S': _keys.DOWN = true; break;
     case 'D': _keys.RIGHT = true; break;
-    case 'X': _keys.WIRE = true; break;
+
+    case 'X': _keys.WIRE = true; break;         // toggle wireframe
+
+    case 'Q': _keys.NEXTCAM = true; break;      // switch to next cam
+    case 'E': _keys.PREVCAM = true; break;      // switch to previous cam
+    case '1': _keys.DEFAULTCAM = true; break;   // switch to deafult cam
+    case '2': _keys.WAYPOINTCAM = true; break;  // switch to way point cam
+    case '0': _keys.PLAYERCAM = true; break;    // switch to player cam
+
+    case VK_SPACE:_keys.MOUSELOOK = true; break;
     }
 }
 void Application::OnKeyUp(MSG msg) {
@@ -1691,6 +1833,19 @@ void Application::OnKeyUp(MSG msg) {
     case 'A': _keys.LEFT = false; break;
     case 'S': _keys.DOWN = false; break;
     case 'D': _keys.RIGHT = false; break;
+
     case 'X': _keys.WIRE = false; break;
+
+    case 'Q': _keys.NEXTCAM = false; break;     // switch to next cam
+    case 'E': _keys.PREVCAM = false; break;     // switch to previous cam
+    case '1': _keys.DEFAULTCAM = false; break;   // switch to deafult cam
+    case '2': _keys.WAYPOINTCAM = false; break;  // switch to way point cam
+    case '0': _keys.PLAYERCAM = false; break;    // switch to player cam
+
+    case VK_SPACE:_keys.MOUSELOOK = false; break;
     }
+}
+
+void Application::OnMouse(LONG mouseX, LONG mouseY) {
+    _mouse.Update((int)mouseX, (int)mouseY);
 }
