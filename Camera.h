@@ -20,6 +20,7 @@ private:
 	Vector3D _at;
 	Vector3D _to;
 	Vector3D _up;
+	Vector3D _offset;
 
 	Vector3D _angle;
 
@@ -45,6 +46,7 @@ private:
 
 public:
 	bool _followPlayer;
+	bool _lookAtTarget;
 	bool _isUsingWayPoints;
 
 	//Constructor and destructor for the camera
@@ -73,11 +75,12 @@ public:
 	Vector3D GetAngle();
 	Vector3D GetLookAt();
 	Vector3D GetLookTo();
+	Vector3D GetOffset();
 	Vector3D GetPos();
 	XMMATRIX GetProjection();
-	Vector3D GetRotation();
-	Vector3D GetTranslation();
 	Vector3D GetUp();
+	void GetVectors(XMFLOAT4X4& target,
+		Vector3D& translation, Vector3D& rotation, Vector3D& scale = Vector3D());
 	XMFLOAT4X4 GetView4x4();
 	XMMATRIX GetView();
 	XMMATRIX GetViewProj();
@@ -101,11 +104,13 @@ public:
 
 	void SetLookAt(Vector3D at);
 	void SetLookTo(Vector3D to);
+	void SetOffset(Vector3D offset);
 	void SetPos(Vector3D pos);
 	void SetProjection(
 		float fovAngle, float ratio, 
 		float nearDepth, float farDepth
 	); 
+	void SetSpeed(float rotate, float translate);
 	void SetView();
 	void SetView(XMFLOAT4X4 view);
 	void SetView(XMMATRIX view);
@@ -118,6 +123,7 @@ public:
 	// matrices
 	void Update();
 	void UseLookTo(bool state);
+	bool UseLookTo();
 	void UseWayPoints(bool state);
 };
 

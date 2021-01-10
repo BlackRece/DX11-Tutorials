@@ -4,6 +4,8 @@
 GameObject::GameObject() {
 	_textureRV = nullptr;
 	_model = new ModelObject();
+	_matrix = {};
+	_wc = nullptr;
 }
 
 GameObject::~GameObject() {

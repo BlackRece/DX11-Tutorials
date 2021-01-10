@@ -28,11 +28,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
             theApp->Draw();
         }
 
-        if (msg.message == WM_KEYDOWN)
+        switch (msg.message) {
+        case WM_KEYDOWN:
             theApp->OnKeyDown(msg);
+            break;
 
-        if (msg.message == WM_KEYUP)
+        case WM_KEYUP:
             theApp->OnKeyUp(msg);
+            break;
+
+        case WM_INPUT:
+            break;
+        }
     }
 
 	delete theApp;

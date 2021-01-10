@@ -5,29 +5,45 @@
       "eye": [ 0.0, 0.0, -10.0 ],
       "up": [ 0.0, 1.0, 0.0 ],
       "near": 0.01,
-      "far": 100.0
+      "far": 100.0,
+      "speed": {
+        "rotate": 1,
+        "translate": 2
+      }
     },
     {
       "name": "top cam",
-      "eye": [ 0.0, -10.0, 0.0 ],
+      "eye": [ 0.0, 10.0, 0.0 ],
       "up": [ 0.0, 0.0, 1.0 ],
       "near": 0.01,
-      "far": 100.0
+      "far": 100.0,
+      "speed": {
+        "rotate": 0.1,
+        "translate": 2
+      }
     },
     {
       "name": "right cam",
       "eye": [ -10.0, 0.0, 0.0 ],
       "up": [ 0.0, 1.0, 0.0 ],
       "near": 0.01,
-      "far": 100.0
+      "far": 100.0,
+      "speed": {
+        "rotate": 1,
+        "translate": 2
+      }
     },
     {
       "name": "far cam",
       "eye": [ 0.0, 0.0, -20.0 ],
       "up": [ 0.0, 1.0, 0.0 ],
-      "to": [ 0.0, 1.0, 0.0 ],
+      "to": [ 0.0, 0.0, 1.0 ],
       "near": 0.01,
       "far": 100.0,
+      "speed": {
+        "rotate": 0.1,
+        "translate": 2
+      },
       "UseLookTo": true
     },
     {
@@ -35,7 +51,12 @@
       "eye": [ 0.0, 0.0, -20.0 ],
       "up": [ 0.0, 1.0, 0.0 ],
       "near": 0.01,
-      "far": 100.0
+      "far": 100.0,
+      "LookAtTarget": true,
+      "speed": {
+        "rotate": 1,
+        "translate": 2
+      }
     },
     {
       "name": "waypoint cam",
@@ -59,17 +80,31 @@
       "name": "1st player cam",
       "eye": [ 0.0, 1.0, 1.0 ],
       "up": [ 0.0, 1.0, 0.0 ],
+      "to": [ 0.0, 0.0, 1.0 ],
+      "offset": [ 0.0, 0.0, 0.0 ],
       "near": 0.01,
       "far": 100.0,
-      "follow": true
+      "speed": {
+        "rotate": 1,
+        "translate": 0.75
+      },
+      "follow": true,
+      "UseLookTo": true
     },
     {
       "name": "3rd player cam",
       "eye": [ 0.0, 2.0, -2.0 ],
       "up": [ 0.0, 1.0, 0.0 ],
+      "to": [ 0.0, 0.0, 1.0 ],
+      "offset": [ 0.0, 2.0, -2.0 ],
       "near": 0.01,
       "far": 100.0,
-      "follow" :  true
+      "speed": {
+        "rotate": 1,
+        "translate": 1.5
+      },
+      "follow": true,
+      "UseLookTo": true
     }
   ]
 }

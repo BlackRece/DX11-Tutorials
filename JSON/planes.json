@@ -1,8 +1,8 @@
 {
-  "planeCount": 15,
+  "planeCount": 25,
 
   "default": {
-    "position": [ 0.0, -5.0, 0.0 ],
+    "position": [ 0.0, -19.0, 0.0 ],
     "scale": [ 1.0, 1.0, 1.0 ],
     "dimension": [ 2, 4, 0.0 ],
     "detail": [ 4, 2 ],
@@ -12,7 +12,7 @@
 
   "planes": [
     {
-      "index": 14,
+      "index": 24,
       "position": [ 0.0, -20.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "dimension": [ 20.0, 0.0, 20.0 ],
@@ -21,7 +21,7 @@
       "isHorizontal": true
     },
     {
-      "index": 13,
+      "index": 23,
       "position": [ -20.0, -20.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "dimension": [ 20.0, 0.0, 20.0 ],
@@ -30,7 +30,7 @@
       "isHorizontal": true
     },
     {
-      "index": 12,
+      "index": 22,
       "position": [ 20.0, -20.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "dimension": [ 20.0, 0.0, 20.0 ],
@@ -39,7 +39,7 @@
       "isHorizontal": true
     },
     {
-      "index": 11,
+      "index": 21,
       "position": [ 0.0, -20.0, -20.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "dimension": [ 20.0, 0.0, 20.0 ],
@@ -48,7 +48,7 @@
       "isHorizontal": true
     },
     {
-      "index": 10,
+      "index": 20,
       "position": [ 0.0, -20.0, 20.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "dimension": [ 20.0, 0.0, 20.0 ],
