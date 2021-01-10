@@ -25,13 +25,14 @@ Camera::Camera() {
 Camera::Camera(Vector3D position, Vector3D at, Vector3D up,
     int windowWidth, int windowHeight, 
     float nearDepth, float farDepth,
-    float rotateSpeed, float translateSpeed) : _useLookTo(false), 
+    float rotateSpeed, float translateSpeed) : 
+    _useLookTo(false), _followPlayer(false),
     _rotateSpeed(rotateSpeed), _translateSpeed(translateSpeed) {
 
     SetPos(position);
     SetLookAt(at);
     SetUp(up);
-    
+
     Reshape(windowWidth, windowHeight, nearDepth, farDepth);
 }
 
@@ -53,6 +54,18 @@ void Camera::AddWayPoint(WayPoint newPoint) {
 
 Vector3D Camera::GetAngle() {
     return _angle;
+}
+
+Vector3D Camera::GetForward(Vector& updir, Vector& pos) {
+    /*
+    Vector3D iup = updir.normalization();
+    Vector3D ipos = pos.normalization();
+    Vector3D iright = ipos.cross_product(iup);
+    */
+
+    Vector3D result = pos.cross_product(updir);
+
+    return result.cross_product(updir);
 }
 
 Vector3D Camera::GetLookAt() {
@@ -160,21 +173,8 @@ void Camera::MoveSidewards(float sideward) {
 
     if (!_useLookTo) {
         // [ E3 ]
+        _eye = Rotate(step * _rotateSpeed, _up, _eye);
         
-        Vector3D vup = _up.normalization();
-        XMVECTOR upNormal = XMVectorSet(vup.x, vup.y, vup.z, 0.0f);
-        XMVECTOR pos = XMVectorSet(_eye.x, _eye.y, _eye.z, 0.0f);
-        XMMATRIX rotation = 
-            XMMatrixRotationNormal(upNormal, step * _rotateSpeed);
-        XMVECTOR result = XMVector3Transform(pos, rotation);
-        Vector3D neweye = Vector3D(
-            XMVectorGetX(result),
-            XMVectorGetY(result),
-            XMVectorGetZ(result)
-        );
-        
-        _eye = neweye;
-
     } else {
         Vector3D eforward = _to.normalization();
         Vector3D eupwards = _up.normalization();
@@ -209,17 +209,12 @@ void Camera::Reshape(
 Vector3D Camera::Rotate(float angle, Vector3D axis, Vector3D origin) {
     Vector3D vangle = axis.normalization();
     XMVECTOR normal = XMVectorSet(vangle.x, vangle.y, vangle.z, 0.0f);
-    XMVECTOR pos = XMVectorSet(origin.x, origin.y, origin.z, 0.0f);
     XMMATRIX rotation =
-        XMMatrixRotationNormal(normal, angle * _rotateSpeed);
+        XMMatrixRotationNormal(normal, angle);// *_rotateSpeed);
+
+    XMVECTOR pos = XMVectorSet(origin.x, origin.y, origin.z, 0.0f);
     XMVECTOR result = XMVector3Transform(pos, rotation);
-    /*
-    Vector3D neweye = Vector3D(
-        XMVectorGetX(result),
-        XMVectorGetY(result),
-        XMVectorGetZ(result)
-    );
-    */
+    
     return Vector3D(
         XMVectorGetX(result),
         XMVectorGetY(result),

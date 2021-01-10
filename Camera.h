@@ -73,6 +73,7 @@ public:
 	// You will need functions to get the View, Projection and 
 	// combined ViewProjection matrices
 	Vector3D GetAngle();
+	Vector3D GetForward(Vector3D& updir, Vector3D& pos);
 	Vector3D GetLookAt();
 	Vector3D GetLookTo();
 	Vector3D GetOffset();

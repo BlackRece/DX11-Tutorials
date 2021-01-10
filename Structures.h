@@ -108,5 +108,19 @@ struct KeyboardFlags {
 };
 
 struct MouseDelta {
-	int x, y;
+	int lx, ly;
+	int nx, ny;
+
+	MouseDelta() :
+		lx(0), ly(0), nx(0), ny(0) {}
+
+	void Update(int x, int y) {
+		lx = nx; nx = x;
+		ly = ny; ny = y;
+	}
+
+	void Diff(int& x, int& y) {
+		x = lx - nx;
+		y = ly = ny;
+	}
 };

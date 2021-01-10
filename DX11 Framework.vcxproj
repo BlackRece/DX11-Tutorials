@@ -389,7 +389,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
+    <None Include="ClassDiagram1.cd" />
     <None Include="DX11 Framework.fx" />
+    <None Include="GameObject_ClassDiagram.cd" />
+    <None Include="Lighting_ClassDiagram.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

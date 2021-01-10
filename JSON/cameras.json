@@ -82,6 +82,7 @@
       "up": [ 0.0, 1.0, 0.0 ],
       "to": [ 0.0, 0.0, 1.0 ],
       "offset": [ 0.0, 0.0, 0.0 ],
+      "range": 100.0,
       "near": 0.01,
       "far": 100.0,
       "speed": {
@@ -89,14 +90,15 @@
         "translate": 0.75
       },
       "follow": true,
-      "UseLookTo": true
+      "UseLookTo": false
     },
     {
       "name": "3rd player cam",
       "eye": [ 0.0, 2.0, -2.0 ],
       "up": [ 0.0, 1.0, 0.0 ],
       "to": [ 0.0, 0.0, 1.0 ],
-      "offset": [ 0.0, 2.0, -2.0 ],
+      "offset": [ 0.0, 1.0, -1.0 ],
+      "range": 50.0,
       "near": 0.01,
       "far": 100.0,
       "speed": {
@@ -104,7 +106,7 @@
         "translate": 1.5
       },
       "follow": true,
-      "UseLookTo": true
+      "UseLookTo": false
     }
   ]
 }

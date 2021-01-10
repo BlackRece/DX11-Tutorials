@@ -47,6 +47,9 @@
     </None>
     <None Include="ClassDiagram.cd" />
     <None Include="packages.config" />
+    <None Include="ClassDiagram1.cd" />
+    <None Include="GameObject_ClassDiagram.cd" />
+    <None Include="Lighting_ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DX11 Framework.rc">

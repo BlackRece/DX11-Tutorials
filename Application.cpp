@@ -118,7 +118,7 @@ Application::Application()
     _camSwitched = false;
 
     //mouse inputs
-    _mouse = { 0,0 };
+    _mouse = MouseDelta();
     _mouseLook = false;
 
     //setup random engine for cubes
@@ -257,7 +257,7 @@ HRESULT Application::InitCameras() {
                 jsonCam["cameras"][i]["up"][1].get<float>(),
                 jsonCam["cameras"][i]["up"][2].get<float>()
             );
-        }
+        } else up = Vector3D(0.0f, 1.0f, 0.0f);
 
         if (jsonCam["cameras"][i].contains("at")) {
             at = Vector3D(
@@ -265,16 +265,18 @@ HRESULT Application::InitCameras() {
                 jsonCam["cameras"][i]["at"][1].get<float>(),
                 jsonCam["cameras"][i]["at"][2].get<float>()
             );
-        }
+        } else at = Vector3D();
 
         _cam[i] = Camera(eye, at, up,
             (int)_WindowWidth, (int)_WindowHeight,
-            jsonCam["cameras"][i]["near"],
-            jsonCam["cameras"][i]["far"]
+            jsonCam["cameras"][i]["near"].get<float>(),
+            jsonCam["cameras"][i]["far"].get<float>()
         );
 
         if (jsonCam["cameras"][i].contains("UseLookTo")) {
-            _cam[i].UseLookTo(true);
+            _cam[i].UseLookTo(
+                jsonCam["cameras"][i]["UseLookTo"].get<bool>()
+            );
         } else {
             _cam[i].UseLookTo(false);
         }
@@ -324,7 +326,22 @@ HRESULT Application::InitCameras() {
         }
 
         if(_cam[i]._followPlayer){
+            float range = 10.0f;
+            if (jsonCam["cameras"][i].contains("range")) {
+                range = jsonCam["cameras"][i]["range"].get<float>();
+            }
+
+            // set initial cam position
             _cam[i].SetPos(_goShip._pos + _cam[i].GetOffset());
+
+            // set initial lookAt vector
+            Vector3D forward = _cam[i].GetForward(
+                _cam[i].GetUp(),
+                _cam[i].GetPos()
+            );
+
+            _cam[i].SetLookTo(forward);
+            _cam[i].SetLookAt(forward * range);
         } 
 
         if (jsonCam["cameras"][i].contains("speed")) {
@@ -1331,7 +1348,8 @@ void Application::UpdateInput(float t) {
         }
 
     } else {
-        if (!_keys.NEXTCAM && !_keys.PREVCAM) {
+        if (!_keys.NEXTCAM && !_keys.PREVCAM &&
+            !_keys.WAYPOINTCAM && !_keys.PLAYERCAM) {
             _camSwitched = false;
         }
     }
@@ -1342,13 +1360,13 @@ void Application::UpdateInput(float t) {
         //forward
         if(_keys.UP){
             _cam[_camSelected].MoveForward(t);
-            _cam[_camSelected].SetView();
+            //_cam[_camSelected].SetView();
         }
 
         //backward
         if(_keys.DOWN){
             _cam[_camSelected].MoveForward(-t);
-            _cam[_camSelected].SetView();
+            //_cam[_camSelected].SetView();
         }
 
         //left
@@ -1363,11 +1381,29 @@ void Application::UpdateInput(float t) {
 
         if (_cam[_camSelected]._followPlayer && _mouseLook) {
             float angle = (t / 1000);
-            Vector3D axis = _cam[_camSelected].GetAngle();
-            /*
-            if (_mouse.x > 0) axis.y += angle;
-            else if (_mouse.x < 0) axis.y -= angle;
+            int mx, my;
+            Vector3D axis = Vector3D();
+            Vector3D offset = Vector3D();
 
+            _mouse.Diff(mx, my);
+
+            //up first
+            //set unit vector to rotate around
+            if (mx < 0) {
+                axis.y--;
+                angle * -1.0f;
+            } else {
+                axis.y++;
+            }
+
+            offset = _cam[_camSelected].
+                Rotate(angle, axis,_goShip._pos);
+
+            _cam[_camSelected].SetPos(
+                offset + _cam[_camSelected].GetOffset()
+            );
+
+            /*
             if (_mouse.y > 0) axis.x += angle;
             else if (_mouse.y < 0) axis.x -= angle;
             
@@ -1382,7 +1418,6 @@ void Application::UpdateInput(float t) {
                 _mouse.y * (XM_PI * 180),
                 0.0f
             );
-            */
 
             axis.y += _mouse.x / _WindowWidth;
             axis.x += _mouse.y / _WindowHeight;
@@ -1393,6 +1428,7 @@ void Application::UpdateInput(float t) {
                     _cam[_camSelected].GetPos()
                 )
             );
+            */
         }
     }
 }
@@ -1803,5 +1839,5 @@ void Application::OnKeyUp(MSG msg) {
 }
 
 void Application::OnMouse(LONG mouseX, LONG mouseY) {
-    _mouse = { (int)mouseX, (int)mouseY };
+    _mouse.Update((int)mouseX, (int)mouseY);
 }
