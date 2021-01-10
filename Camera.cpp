@@ -56,7 +56,7 @@ Vector3D Camera::GetAngle() {
     return _angle;
 }
 
-Vector3D Camera::GetForward(Vector& updir, Vector& pos) {
+Vector3D Camera::GetForward(Vector3D& updir, Vector3D& pos) {
     /*
     Vector3D iup = updir.normalization();
     Vector3D ipos = pos.normalization();
@@ -146,23 +146,15 @@ Camera::WayPoint Camera::GetWayPoint(int index) {
 
 void Camera::MoveForward(float forward) {
     float step = forward / 1000;
-    //*_translateSpeed;
+    
     if (!_useLookTo) {
         Vector3D dist = Vector3D(_eye - _at).normalization();
         Vector3D result = _eye - (dist * (step * _translateSpeed));
 
         if (result.distance(_at) > 1)
             _eye = result;
-
-        /*
-        _eye.z += step;
-        SetView();
-        */
-        
     } else {
         _eye += _to * (step * _translateSpeed);
-
-        //Translate(_to * step);
     }
 }
 
@@ -171,7 +163,16 @@ void Camera::MoveSidewards(float sideward) {
         
     step = (sideward / 1000);
 
-    if (!_useLookTo) {
+    float oneDegree = _rotateSpeed * (XM_PI / 180);
+    if (_followPlayer) {
+        if(step < 0) oneDegree *= -1.0f;
+        
+        //_at = Rotate(_angle.y * (XM_PI / 180), _up, _at);
+
+        //_at = Rotate(_angle.y / 250, _up, _at);
+        _angle.y += oneDegree;
+
+    } else if (!_useLookTo) {
         // [ E3 ]
         _eye = Rotate(step * _rotateSpeed, _up, _eye);
         
@@ -210,7 +211,7 @@ Vector3D Camera::Rotate(float angle, Vector3D axis, Vector3D origin) {
     Vector3D vangle = axis.normalization();
     XMVECTOR normal = XMVectorSet(vangle.x, vangle.y, vangle.z, 0.0f);
     XMMATRIX rotation =
-        XMMatrixRotationNormal(normal, angle);// *_rotateSpeed);
+        XMMatrixRotationNormal(normal, angle);
 
     XMVECTOR pos = XMVectorSet(origin.x, origin.y, origin.z, 0.0f);
     XMVECTOR result = XMVector3Transform(pos, rotation);
@@ -258,7 +259,12 @@ void Camera::SetView() {
     XMVECTOR up = XMVectorSet(_up.x, _up.y, _up.z, 0.0f);
 
     if (!_useLookTo)
-        SetView(XMMatrixLookAtLH(eye, at, up));
+        SetView(
+            XMMatrixMultiply(
+                XMMatrixLookAtLH(eye, at, up),
+                XMMatrixRotationRollPitchYaw(-_angle.x, -_angle.y, -_angle.z)
+            )
+        );
     else {
         SetView(
             XMMatrixMultiply(
@@ -297,7 +303,6 @@ void Camera::Update() {
             // list of waypoints is empty!!
             return;
 
-        //Vector3D dist = 
         if (_eye.distance(_points[_pointIndex].eye) > 0.01f) {
             // waypoint not reached
             MoveTo(_points[_pointIndex].eye, _translateSpeed);
@@ -310,14 +315,7 @@ void Camera::Update() {
         }
     }
 
-    if (_followPlayer) {
-
-    }
-
     SetView();
-
-    //GetVectors(_view,_eye,_angle);
-
 }
 
 void Camera::UseLookTo(bool state) {

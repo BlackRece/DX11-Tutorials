@@ -1252,9 +1252,15 @@ void Application::UpdateCameras(float t) {
 
     // Update player camera
     if (_cam[_camSelected]._followPlayer) {
-        //_cam[_camSelected].SetOffset(_goShip._pos);
-        _goShip._pos = 
-            _cam[_camSelected].GetPos() - _cam[_camSelected].GetOffset();
+        float angle = -_cam[_camSelected].GetAngle().y;
+        Vector3D axis = _cam[_camSelected].GetUp();
+        Vector3D offset = 
+            _cam[_camSelected].Rotate(
+                angle, axis,
+                _cam[_camSelected].GetPos() - _cam[_camSelected].GetOffset()
+            );
+        
+        _goShip._pos = offset;
         _goShip._angle = _cam[_camSelected].GetAngle();
     }
 
@@ -1278,8 +1284,6 @@ void Application::UpdateInput(float t) {
         if(_wireFrameCount > 0)
             _wireFrameCount -= t / 1000;
     }
-
-    
 
     // camera switching
     if (!_camSwitched) {
@@ -1379,7 +1383,9 @@ void Application::UpdateInput(float t) {
             _cam[_camSelected].MoveSidewards(t);
         }
 
-        if (_cam[_camSelected]._followPlayer && _mouseLook) {
+        
+
+        if (_mouseLook) {
             float angle = (t / 1000);
             int mx, my;
             Vector3D axis = Vector3D();
@@ -1397,7 +1403,7 @@ void Application::UpdateInput(float t) {
             }
 
             offset = _cam[_camSelected].
-                Rotate(angle, axis,_goShip._pos);
+                Rotate(angle, axis, _goShip._pos);
 
             _cam[_camSelected].SetPos(
                 offset + _cam[_camSelected].GetOffset()
@@ -1406,7 +1412,7 @@ void Application::UpdateInput(float t) {
             /*
             if (_mouse.y > 0) axis.x += angle;
             else if (_mouse.y < 0) axis.x -= angle;
-            
+
             float ay = (_mouse.y == 0)? 0 : _mouse.y / _mouse.y;
             float ax = (_mouse.x == 0)? 0 : _mouse.x / _mouse.x;
 
@@ -1429,6 +1435,8 @@ void Application::UpdateInput(float t) {
                 )
             );
             */
+
+
         }
     }
 }
